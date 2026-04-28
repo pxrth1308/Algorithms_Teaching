@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algorithms Teaching — BSD 404 · Interactive Lecture Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+	--bg: #0a0e1a;
+	--bg2: #060912;
+	--panel: #111827;
+	--panel2: #1a2236;
+	--panel3: #0f172a;
+	--border: #2d3748;
+	--border2: #374151;
+	--text: #e2e8f0;
+	--text-dim: #94a3b8;
+	--text-muted: #64748b;
+	--accent: #38bdf8;
+	--accent2: #0ea5e9;
+	--green: #4ade80;
+	--green2: #22c55e;
+	--amber: #fbbf24;
+	--amber2: #f59e0b;
+	--red: #f87171;
+	--purple: #a78bfa;
+	--teal: #2dd4bf;
+	--shadow: rgba(0, 0, 0, 0.45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { background: var(--bg); }
+
+body {
+	font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+	color: var(--text);
+	min-height: 100vh;
+	font-size: 14px;
+	overflow-x: hidden;
+}
+
+a { color: var(--accent); text-decoration: none; }
+
+/* ───────────── HEADER ───────────── */
+header {
+	background: linear-gradient(135deg, #0f172a 0%, #1a2236 100%);
+	border-bottom: 1px solid var(--border);
+	padding: 14px 28px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	position: sticky;
+	top: 0;
+	z-index: 50;
+	backdrop-filter: blur(8px);
+}
+header .brand {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+header .logo {
+	width: 32px; height: 32px;
+	border-radius: 8px;
+	background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+	display: grid; place-items: center;
+	font-family: "Space Grotesk", sans-serif;
+	font-weight: 700;
+	color: #0a0e1a;
+	font-size: 16px;
+	box-shadow: 0 4px 14px rgba(56,189,248,0.35);
+}
+header h1 {
+	font-family: "Space Grotesk", sans-serif;
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--accent);
+	letter-spacing: -0.3px;
+}
+header h1 .accent2 { color: var(--purple); }
+header .meta {
+	font-size: 11px;
+	color: var(--text-dim);
+	letter-spacing: 0.3px;
+}
+.badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 9999px;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	background: rgba(56,189,248,0.15);
+	color: var(--accent);
+	border: 1px solid rgba(56,189,248,0.3);
+	margin-left: 8px;
+}
+.header-tools { display: flex; gap: 8px; align-items: center; }
+.kbd-hint {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 10px;
+	color: var(--text-muted);
+}
+.kbd-hint kbd {
+	display: inline-block;
+	padding: 2px 6px;
+	border-radius: 4px;
+	background: var(--panel2);
+	border: 1px solid var(--border);
+	color: var(--text);
+	font-family: "JetBrains Mono", monospace;
+	font-size: 10px;
+	margin: 0 2px;
+}
+
+/* ───────────── HERO ───────────── */
+.hero {
+	position: relative;
+	padding: 56px 28px 40px;
+	overflow: hidden;
+	border-bottom: 1px solid var(--border);
+}
+.hero canvas#hero-canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0.55;
+	pointer-events: none;
+}
+.hero-inner { position: relative; max-width: 1200px; margin: 0 auto; }
+.hero h2 {
+	font-family: "Space Grotesk", sans-serif;
+	font-size: clamp(28px, 4.2vw, 44px);
+	font-weight: 700;
+	letter-spacing: -1.2px;
+	line-height: 1.1;
+	margin-bottom: 14px;
+	background: linear-gradient(120deg, var(--accent) 0%, var(--purple) 50%, var(--teal) 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	color: transparent;
+}
+.hero p.lede {
+	color: var(--text-dim);
+	font-size: 16px;
+	max-width: 720px;
+	line-height: 1.65;
+	margin-bottom: 24px;
+}
+.hero .stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 12px;
+	max-width: 720px;
+}
+.stat {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 12px 14px;
+}
+.stat .v {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--accent);
+}
+.stat .v.green  { color: var(--green); }
+.stat .v.amber  { color: var(--amber); }
+.stat .v.purple { color: var(--purple); }
+.stat .l {
+	font-size: 11px;
+	color: var(--text-muted);
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
+	margin-top: 2px;
+}
+
+/* ───────────── CONTROL BAR ───────────── */
+.controls-bar {
+	display: flex;
+	gap: 12px;
+	padding: 14px 28px;
+	background: var(--panel3);
+	border-bottom: 1px solid var(--border);
+	flex-wrap: wrap;
+	align-items: center;
+}
+.search-wrap {
+	flex: 1 1 320px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: var(--panel2);
+	border: 1px solid var(--border2);
+	border-radius: 8px;
+	padding: 8px 12px;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-wrap:focus-within {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(56,189,248,0.12);
+}
+.search-wrap svg { flex-shrink: 0; }
+#search {
+	flex: 1;
+	background: transparent;
+	border: none;
+	outline: none;
+	color: var(--text);
+	font-family: inherit;
+	font-size: 13px;
+}
+#search::placeholder { color: var(--text-muted); }
+.tag-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+	padding: 6px 12px;
+	border-radius: 9999px;
+	border: 1px solid var(--border2);
+	background: var(--panel2);
+	color: var(--text-dim);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.4px;
+	cursor: pointer;
+	transition: all 0.15s;
+	user-select: none;
+}
+.chip:hover {
+	background: rgba(56,189,248,0.08);
+	color: var(--text);
+}
+.chip.active {
+	background: rgba(56,189,248,0.18);
+	border-color: rgba(56,189,248,0.45);
+	color: var(--accent);
+}
+
+/* ───────────── LESSON GRID ───────────── */
+.lessons {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 32px 28px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 18px;
+}
+
+.card {
+	position: relative;
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+	cursor: pointer;
+}
+.card:hover {
+	transform: translateY(-3px);
+	border-color: var(--accent);
+	box-shadow: 0 12px 28px var(--shadow);
+}
+.card.hidden { display: none; }
+.card.studied::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: 14px;
+	border: 1px solid rgba(74,222,128,0.45);
+	pointer-events: none;
+}
+.card .preview {
+	height: 150px;
+	background: var(--panel3);
+	border-bottom: 1px solid var(--border);
+	position: relative;
+	overflow: hidden;
+}
+.card .preview svg, .card .preview canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+.card .body { padding: 16px 18px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.card .top {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px;
+}
+.card .num {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 11px;
+	color: var(--text-muted);
+	letter-spacing: 1px;
+}
+.card .title {
+	font-family: "Space Grotesk", sans-serif;
+	font-weight: 700;
+	font-size: 17px;
+	line-height: 1.25;
+	letter-spacing: -0.3px;
+	color: var(--text);
+}
+.card .subtitle {
+	font-size: 12px;
+	color: var(--text-dim);
+	line-height: 1.55;
+}
+.card .meta-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 4px;
+}
+.tag {
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.4px;
+	background: var(--panel2);
+	color: var(--text-dim);
+	border: 1px solid var(--border2);
+	font-family: "JetBrains Mono", monospace;
+}
+.tag.cyan   { color: var(--accent); border-color: rgba(56,189,248,0.35); background: rgba(56,189,248,0.08); }
+.tag.green  { color: var(--green);  border-color: rgba(74,222,128,0.35); background: rgba(74,222,128,0.08); }
+.tag.amber  { color: var(--amber);  border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.08); }
+.tag.purple { color: var(--purple); border-color: rgba(167,139,250,0.35); background: rgba(167,139,250,0.08); }
+.card .actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 6px;
+	border-top: 1px solid var(--border);
+	padding-top: 12px;
+}
+.btn {
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 7px 12px;
+	border-radius: 6px;
+	border: 1px solid var(--border2);
+	background: var(--panel2);
+	color: var(--text);
+	cursor: pointer;
+	transition: all 0.15s;
+}
+.btn:hover { background: rgba(56,189,248,0.12); border-color: var(--accent); color: var(--accent); }
+.btn.primary {
+	background: var(--accent);
+	color: #0a0e1a;
+	border-color: var(--accent);
+	font-weight: 700;
+}
+.btn.primary:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.btn.studied { color: var(--green); border-color: rgba(74,222,128,0.45); background: rgba(74,222,128,0.10); }
+
+/* ───────────── SECTIONS ───────────── */
+.section {
+	max-width: 1200px;
+	margin: 8px auto 0;
+	padding: 24px 28px;
+}
+.section h3 {
+	font-family: "Space Grotesk", sans-serif;
+	font-size: 18px;
+	font-weight: 700;
+	letter-spacing: -0.3px;
+	color: var(--accent);
+	margin-bottom: 4px;
+}
+.section .sub {
+	color: var(--text-dim);
+	font-size: 13px;
+	margin-bottom: 18px;
+}
+
+/* ───────────── INTERACTIVE PLAYGROUND (CRT) ───────────── */
+.playground {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	padding: 20px;
+}
+.crt-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+}
+@media (max-width: 760px) { .crt-row { grid-template-columns: 1fr; } }
+.crt-inputs { display: flex; flex-direction: column; gap: 12px; }
+.crt-input-row {
+	display: grid;
+	grid-template-columns: 60px 1fr 60px 1fr;
+	gap: 8px;
+	align-items: center;
+}
+.crt-input-row label {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 12px;
+	color: var(--text-dim);
+}
+.crt-input-row input {
+	width: 100%;
+	padding: 6px 10px;
+	background: var(--panel3);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	color: var(--text);
+	font-family: "JetBrains Mono", monospace;
+	font-size: 13px;
+	outline: none;
+	transition: border-color 0.15s;
+}
+.crt-input-row input:focus { border-color: var(--accent); }
+.crt-output {
+	background: var(--panel3);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 16px;
+	font-family: "JetBrains Mono", monospace;
+	font-size: 13px;
+	line-height: 1.7;
+	min-height: 180px;
+}
+.crt-output .ok    { color: var(--green); }
+.crt-output .err   { color: var(--red); }
+.crt-output .pop   { color: var(--accent); font-weight: 700; }
+.crt-output .dim   { color: var(--text-muted); }
+
+/* ───────────── QUIZ ───────────── */
+.quiz {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	padding: 20px;
+}
+.quiz-q {
+	font-size: 14px;
+	color: var(--text);
+	line-height: 1.6;
+	margin-bottom: 12px;
+}
+.quiz-q .q-num {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 11px;
+	color: var(--text-muted);
+	letter-spacing: 1px;
+	margin-right: 8px;
+}
+.quiz-options { display: grid; gap: 8px; }
+.quiz-opt {
+	text-align: left;
+	padding: 10px 14px;
+	background: var(--panel2);
+	border: 1px solid var(--border2);
+	border-radius: 8px;
+	color: var(--text);
+	font-family: inherit;
+	font-size: 13px;
+	cursor: pointer;
+	transition: all 0.15s;
+}
+.quiz-opt:hover {
+	border-color: var(--accent);
+	background: rgba(56,189,248,0.08);
+}
+.quiz-opt.correct {
+	border-color: var(--green);
+	background: rgba(74,222,128,0.12);
+	color: var(--green);
+}
+.quiz-opt.wrong {
+	border-color: var(--red);
+	background: rgba(248,113,113,0.10);
+	color: var(--red);
+}
+.quiz-opt.locked { pointer-events: none; opacity: 0.7; }
+.quiz-foot {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border);
+	font-size: 12px;
+	color: var(--text-dim);
+}
+.quiz-foot .score { font-family: "JetBrains Mono", monospace; }
+
+/* ───────────── TOPIC GRAPH ───────────── */
+.graph-wrap {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	padding: 14px;
+	overflow: hidden;
+}
+.graph-wrap svg { width: 100%; height: 320px; display: block; }
+.gnode rect, .gnode circle { transition: filter 0.15s, stroke 0.15s; cursor: pointer; }
+.gnode:hover rect, .gnode:hover circle { filter: brightness(1.2); }
+.gnode text { pointer-events: none; }
+
+/* ───────────── FOOTER ───────────── */
+footer {
+	border-top: 1px solid var(--border);
+	padding: 24px 28px;
+	color: var(--text-muted);
+	font-size: 12px;
+	text-align: center;
+	margin-top: 32px;
+}
+footer a { color: var(--accent); }
+footer .legend {
+	display: inline-flex;
+	gap: 14px;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-top: 8px;
+}
+footer .swatch {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-family: "JetBrains Mono", monospace;
+	font-size: 11px;
+}
+footer .sw { width: 12px; height: 12px; border-radius: 3px; }
+
+/* ───────────── TOAST ───────────── */
+#toast-host {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	z-index: 100;
+	pointer-events: none;
+}
+.toast {
+	background: var(--panel);
+	border: 1px solid var(--accent);
+	color: var(--text);
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-size: 12px;
+	box-shadow: 0 8px 24px var(--shadow);
+	animation: toastIn 0.25s ease, toastOut 0.25s ease 2.5s forwards;
+	max-width: 280px;
+}
+.toast.green  { border-color: var(--green); }
+.toast.amber  { border-color: var(--amber); }
+@keyframes toastIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { to   { opacity: 0; transform: translateY(8px); } }
+
+/* ───────────── HELP DIALOG ───────────── */
+.help-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(2,6,12,0.78);
+	backdrop-filter: blur(6px);
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 200;
+	padding: 20px;
+}
+.help-overlay.show { display: flex; }
+.help-dialog {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	padding: 22px;
+	max-width: 460px;
+	width: 100%;
+}
+.help-dialog h4 {
+	font-family: "Space Grotesk", sans-serif;
+	color: var(--accent);
+	font-size: 16px;
+	margin-bottom: 12px;
+}
+.help-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--border);
+	font-size: 13px;
+	color: var(--text-dim);
+}
+.help-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<!-- ─────────────── HEADER ─────────────── -->
+<header>
+	<div class="brand">
+		<div class="logo">A</div>
+		<div>
+			<h1>Algorithms <span class="accent2">Teaching</span> <span class="badge">BSD 404</span></h1>
+			<div class="meta">Interactive lecture notes · self-contained · zero dependencies</div>
+		</div>
+	</div>
+	<div class="header-tools">
+		<span class="kbd-hint">
+			Press <kbd>1</kbd>–<kbd>4</kbd> to open · <kbd>/</kbd> search · <kbd>?</kbd> help
+		</span>
+		<button class="btn" id="help-btn" aria-label="Show keyboard help">?</button>
+	</div>
+</header>
+
+<!-- ─────────────── HERO ─────────────── -->
+<section class="hero">
+	<canvas id="hero-canvas" aria-hidden="true"></canvas>
+	<div class="hero-inner">
+		<h2>Four advanced algorithms.<br>One interactive playground.</h2>
+		<p class="lede">
+			A curated set of self-contained HTML lessons covering <strong>number theory</strong>,
+			<strong>computational geometry</strong>, <strong>approximation algorithms</strong>, and
+			<strong>signal processing</strong> — each with live animations, pseudocode tracing, and worked examples.
+			Everything runs locally. No build step. No frameworks.
+		</p>
+		<div class="stats">
+			<div class="stat"><div class="v" id="stat-lessons">4</div><div class="l">Lessons</div></div>
+			<div class="stat"><div class="v green" id="stat-studied">0</div><div class="l">Studied</div></div>
+			<div class="stat"><div class="v amber" id="stat-progress">0%</div><div class="l">Progress</div></div>
+			<div class="stat"><div class="v purple">~ 90 min</div><div class="l">Total run-time</div></div>
+		</div>
+	</div>
+</section>
+
+<!-- ─────────────── CONTROLS ─────────────── -->
+<div class="controls-bar">
+	<div class="search-wrap">
+		<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+		<input id="search" type="text" placeholder="Search lessons, tags, topics… (press / to focus)" autocomplete="off">
+	</div>
+	<div class="tag-chips" id="chips">
+		<button class="chip active" data-tag="all">All</button>
+		<button class="chip" data-tag="number-theory">Number Theory</button>
+		<button class="chip" data-tag="geometry">Geometry</button>
+		<button class="chip" data-tag="approximation">Approximation</button>
+		<button class="chip" data-tag="signal">Signal</button>
+		<button class="chip" data-tag="dnc">Divide &amp; Conquer</button>
+		<button class="chip" data-tag="dp">Dynamic Programming</button>
+	</div>
+</div>
+
+<!-- ─────────────── LESSON CARDS ─────────────── -->
+<main class="lessons" id="lesson-grid"></main>
+
+<!-- ─────────────── PLAYGROUND: LIVE CRT ─────────────── -->
+<section class="section">
+	<h3>🧮 Live Playground · Chinese Remainder Theorem</h3>
+	<div class="sub">Solve <code style="font-family:'JetBrains Mono',monospace;color:var(--teal);">x ≡ aᵢ (mod mᵢ)</code> in real time. Edit any field — the answer updates instantly.</div>
+	<div class="playground">
+		<div class="crt-row">
+			<div class="crt-inputs">
+				<div class="crt-input-row">
+					<label>x ≡</label><input type="number" id="a1" value="2">
+					<label>mod</label><input type="number" id="m1" value="3">
+				</div>
+				<div class="crt-input-row">
+					<label>x ≡</label><input type="number" id="a2" value="3">
+					<label>mod</label><input type="number" id="m2" value="5">
+				</div>
+				<div class="crt-input-row">
+					<label>x ≡</label><input type="number" id="a3" value="2">
+					<label>mod</label><input type="number" id="m3" value="7">
+				</div>
+				<div style="display:flex; gap:8px; margin-top:4px;">
+					<button class="btn" id="crt-preset-1">Preset · classic</button>
+					<button class="btn" id="crt-preset-2">Preset · coprime triple</button>
+					<button class="btn" id="crt-randomize">Randomize</button>
+				</div>
+			</div>
+			<div class="crt-output" id="crt-output"></div>
+		</div>
+	</div>
+</section>
+
+<!-- ─────────────── QUIZ ─────────────── -->
+<section class="section">
+	<h3>🧠 Quick Quiz · One question per topic</h3>
+	<div class="sub">Test your intuition. Tracks your score across the four lessons.</div>
+	<div class="quiz" id="quiz">
+		<!-- injected by JS -->
+	</div>
+</section>
+
+<!-- ─────────────── TOPIC GRAPH ─────────────── -->
+<section class="section">
+	<h3>🗺️ Topic Map</h3>
+	<div class="sub">Click any node to jump to that lesson.</div>
+	<div class="graph-wrap">
+		<svg id="graph" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet"></svg>
+	</div>
+</section>
+
+<!-- ─────────────── FOOTER ─────────────── -->
+<footer>
+	<div>Released under the MIT License · self-contained pages — drop one in a browser, it Just Works.</div>
+	<div class="legend">
+		<span class="swatch"><span class="sw" style="background:#38bdf8"></span>active</span>
+		<span class="swatch"><span class="sw" style="background:#4ade80"></span>success</span>
+		<span class="swatch"><span class="sw" style="background:#fbbf24"></span>candidate</span>
+		<span class="swatch"><span class="sw" style="background:#a78bfa"></span>structural</span>
+		<span class="swatch"><span class="sw" style="background:#0d1117;border:1px solid #2d3748"></span>background</span>
+	</div>
+</footer>
+
+<div id="toast-host"></div>
+
+<!-- ─────────────── HELP DIALOG ─────────────── -->
+<div class="help-overlay" id="help-overlay">
+	<div class="help-dialog">
+		<h4>Keyboard shortcuts</h4>
+		<div class="help-row"><span><kbd>1</kbd> – <kbd>4</kbd></span><span>Open lesson 1 to 4</span></div>
+		<div class="help-row"><span><kbd>/</kbd></span><span>Focus search</span></div>
+		<div class="help-row"><span><kbd>S</kbd></span><span>Toggle "studied" on focused card</span></div>
+		<div class="help-row"><span><kbd>R</kbd></span><span>Randomize CRT inputs</span></div>
+		<div class="help-row"><span><kbd>?</kbd></span><span>Show / hide this dialog</span></div>
+		<div class="help-row"><span><kbd>Esc</kbd></span><span>Close dialog</span></div>
+		<div style="margin-top:14px; text-align:right;">
+			<button class="btn primary" id="help-close">Got it</button>
+		</div>
+	</div>
+</div>
+
+<script>
+"use strict";
+
+/* ──────────────────────────────────────────
+   1. LESSON DATA
+   ────────────────────────────────────────── */
+const LESSONS = [
+	{
+		id: "crt",
+		num: "01",
+		file: "ChineseRemainder_RSA.html",
+		title: "Chinese Remainder Theorem & RSA-CRT",
+		subtitle: "From simultaneous congruences to a 4× speedup of RSA decryption.",
+		emoji: "🔐",
+		tags: ["number-theory"],
+		tagColors: { "number-theory": "cyan" },
+		complexity: "O(k · log² M)",
+		preview: "preview-crt"
+	},
+	{
+		id: "closest",
+		num: "02",
+		file: "ClosestPairPoints.html",
+		title: "Closest Pair of Points — Divide & Conquer",
+		subtitle: "The classic O(n log n) sweep, with the 7-point strip lemma made visible.",
+		emoji: "📍",
+		tags: ["geometry", "dnc"],
+		tagColors: { "geometry": "green", "dnc": "purple" },
+		complexity: "O(n log n)",
+		preview: "preview-closest"
+	},
+	{
+		id: "fptas",
+		num: "03",
+		file: "FPTAS.html",
+		title: "FPTAS for 0/1 Knapsack",
+		subtitle: "Trade a tunable ε for polynomial running time on an NP-hard problem.",
+		emoji: "🎒",
+		tags: ["approximation", "dp"],
+		tagColors: { "approximation": "amber", "dp": "cyan" },
+		complexity: "O(n³ / ε)",
+		preview: "preview-fptas"
+	},
+	{
+		id: "fft",
+		num: "04",
+		file: "dft_fft_circuits.html",
+		title: "DFT & FFT Circuits",
+		subtitle: "From the DFT matrix to butterfly circuits — Cooley-Tukey demystified.",
+		emoji: "🌊",
+		tags: ["signal", "dnc"],
+		tagColors: { "signal": "purple", "dnc": "purple" },
+		complexity: "O(n log n)",
+		preview: "preview-fft"
+	},
+];
+
+/* ──────────────────────────────────────────
+   2. LOCAL STORAGE — "studied" state
+   ────────────────────────────────────────── */
+const STORE_KEY = "alg-teaching-studied-v1";
+function loadStudied() {
+	try { return new Set(JSON.parse(localStorage.getItem(STORE_KEY) || "[]")); }
+	catch { return new Set(); }
+}
+function saveStudied(set) {
+	localStorage.setItem(STORE_KEY, JSON.stringify([...set]));
+}
+const studied = loadStudied();
+
+function refreshStats() {
+	document.getElementById("stat-studied").textContent  = studied.size;
+	document.getElementById("stat-progress").textContent = Math.round(100 * studied.size / LESSONS.length) + "%";
+}
+
+/* ──────────────────────────────────────────
+   3. TOAST
+   ────────────────────────────────────────── */
+function toast(msg, kind = "") {
+	const host = document.getElementById("toast-host");
+	const el = document.createElement("div");
+	el.className = "toast " + kind;
+	el.textContent = msg;
+	host.appendChild(el);
+	setTimeout(() => el.remove(), 2900);
+}
+
+/* ──────────────────────────────────────────
+   4. RENDER LESSON CARDS
+   ────────────────────────────────────────── */
+const grid = document.getElementById("lesson-grid");
+
+function tagLabel(t) {
+	return ({
+		"number-theory": "Number Theory",
+		"geometry":      "Geometry",
+		"approximation": "Approximation",
+		"signal":        "Signal",
+		"dnc":           "Divide & Conquer",
+		"dp":            "Dynamic Programming",
+	})[t] || t;
+}
+
+function makeCard(lesson) {
+	const card = document.createElement("article");
+	card.className = "card";
+	card.tabIndex = 0;
+	card.dataset.id   = lesson.id;
+	card.dataset.tags = lesson.tags.join(",");
+	card.dataset.text = (lesson.title + " " + lesson.subtitle + " " + lesson.tags.map(tagLabel).join(" ")).toLowerCase();
+	if (studied.has(lesson.id)) card.classList.add("studied");
+
+	const tagsHTML = lesson.tags.map(t =>
+		`<span class="tag ${lesson.tagColors[t] || ""}">${tagLabel(t)}</span>`
+	).join("");
+
+	card.innerHTML = `
+		<div class="preview" id="prev-${lesson.id}"></div>
+		<div class="body">
+			<div class="top">
+				<div>
+					<div class="num">LESSON ${lesson.num}</div>
+					<div class="title">${lesson.emoji} ${lesson.title}</div>
+				</div>
+			</div>
+			<div class="subtitle">${lesson.subtitle}</div>
+			<div class="meta-row">
+				<span class="tag">${lesson.complexity}</span>
+				${tagsHTML}
+			</div>
+			<div class="actions">
+				<a class="btn primary" href="${lesson.file}" data-open="${lesson.id}">Open lesson →</a>
+				<button class="btn ${studied.has(lesson.id) ? "studied" : ""}" data-mark="${lesson.id}">
+					${studied.has(lesson.id) ? "✓ Studied" : "Mark as studied"}
+				</button>
+			</div>
+		</div>
+	`;
+
+	// Click anywhere on the card (except buttons) opens lesson
+	card.addEventListener("click", (e) => {
+		if (e.target.closest("button, a")) return;
+		window.location.href = lesson.file;
+	});
+
+	// "Mark as studied" toggle
+	card.querySelector(`[data-mark="${lesson.id}"]`).addEventListener("click", (e) => {
+		e.stopPropagation();
+		if (studied.has(lesson.id)) {
+			studied.delete(lesson.id);
+			card.classList.remove("studied");
+			e.target.classList.remove("studied");
+			e.target.textContent = "Mark as studied";
+			toast(`Unmarked "${lesson.title}"`, "amber");
+		} else {
+			studied.add(lesson.id);
+			card.classList.add("studied");
+			e.target.classList.add("studied");
+			e.target.textContent = "✓ Studied";
+			toast(`Marked "${lesson.title}" as studied`, "green");
+		}
+		saveStudied(studied);
+		refreshStats();
+	});
+
+	return card;
+}
+
+LESSONS.forEach(l => grid.appendChild(makeCard(l)));
+refreshStats();
+
+/* ──────────────────────────────────────────
+   5. SEARCH + TAG FILTER
+   ────────────────────────────────────────── */
+const searchInput = document.getElementById("search");
+let currentTag = "all";
+
+function applyFilter() {
+	const q = searchInput.value.trim().toLowerCase();
+	document.querySelectorAll(".card").forEach(card => {
+		const matchesText = !q || card.dataset.text.includes(q);
+		const matchesTag  = currentTag === "all" || card.dataset.tags.split(",").includes(currentTag);
+		card.classList.toggle("hidden", !(matchesText && matchesTag));
+	});
+}
+searchInput.addEventListener("input", applyFilter);
+
+document.querySelectorAll(".chip").forEach(chip => {
+	chip.addEventListener("click", () => {
+		document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+		chip.classList.add("active");
+		currentTag = chip.dataset.tag;
+		applyFilter();
+	});
+});
+
+/* ──────────────────────────────────────────
+   6. KEYBOARD SHORTCUTS
+   ────────────────────────────────────────── */
+const helpOverlay = document.getElementById("help-overlay");
+document.getElementById("help-btn").addEventListener("click",   () => helpOverlay.classList.add("show"));
+document.getElementById("help-close").addEventListener("click", () => helpOverlay.classList.remove("show"));
+helpOverlay.addEventListener("click", (e) => { if (e.target === helpOverlay) helpOverlay.classList.remove("show"); });
+
+document.addEventListener("keydown", (e) => {
+	const inField = ["INPUT","TEXTAREA"].includes(document.activeElement.tagName);
+
+	if (e.key === "Escape") { helpOverlay.classList.remove("show"); return; }
+	if (e.key === "?")      { e.preventDefault(); helpOverlay.classList.toggle("show"); return; }
+
+	if (inField) return;
+
+	if (e.key === "/") { e.preventDefault(); searchInput.focus(); return; }
+	if (e.key.toLowerCase() === "r") { randomizeCRT(); return; }
+	if (["1","2","3","4"].includes(e.key)) {
+		const i = parseInt(e.key,10) - 1;
+		if (LESSONS[i]) window.location.href = LESSONS[i].file;
+		return;
+	}
+	if (e.key.toLowerCase() === "s") {
+		const focused = document.activeElement.closest(".card");
+		if (focused) focused.querySelector("[data-mark]").click();
+	}
+});
+
+/* ──────────────────────────────────────────
+   7. HERO BACKGROUND — animated "closest pair" particle network
+   ────────────────────────────────────────── */
+(function heroAnim() {
+	const canvas = document.getElementById("hero-canvas");
+	const ctx = canvas.getContext("2d");
+	let pts = [];
+	let DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+	function resize() {
+		const r = canvas.getBoundingClientRect();
+		canvas.width  = r.width  * DPR;
+		canvas.height = r.height * DPR;
+		ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+		const N = Math.max(28, Math.floor(r.width / 28));
+		pts = [];
+		for (let i = 0; i < N; i++) {
+			pts.push({
+				x: Math.random() * r.width,
+				y: Math.random() * r.height,
+				vx: (Math.random() - 0.5) * 0.35,
+				vy: (Math.random() - 0.5) * 0.35,
+			});
+		}
+	}
+	resize();
+	window.addEventListener("resize", resize);
+
+	function dist(a, b) { return Math.hypot(a.x-b.x, a.y-b.y); }
+
+	function tick() {
+		const r = canvas.getBoundingClientRect();
+		ctx.clearRect(0, 0, r.width, r.height);
+
+		// Move
+		for (const p of pts) {
+			p.x += p.vx; p.y += p.vy;
+			if (p.x < 0 || p.x > r.width)  p.vx *= -1;
+			if (p.y < 0 || p.y > r.height) p.vy *= -1;
+		}
+
+		// Find closest pair (O(n²) — fine for ~40 pts)
+		let best = Infinity, ai = 0, bi = 1;
+		for (let i = 0; i < pts.length; i++) {
+			for (let j = i+1; j < pts.length; j++) {
+				const d = dist(pts[i], pts[j]);
+				if (d < best) { best = d; ai = i; bi = j; }
+			}
+		}
+
+		// Edges
+		ctx.lineWidth = 1;
+		for (let i = 0; i < pts.length; i++) {
+			for (let j = i+1; j < pts.length; j++) {
+				const d = dist(pts[i], pts[j]);
+				if (d < 130) {
+					const a = (1 - d/130) * 0.45;
+					ctx.strokeStyle = `rgba(56,189,248,${a.toFixed(3)})`;
+					ctx.beginPath();
+					ctx.moveTo(pts[i].x, pts[i].y);
+					ctx.lineTo(pts[j].x, pts[j].y);
+					ctx.stroke();
+				}
+			}
+		}
+
+		// Closest pair highlighted
+		ctx.strokeStyle = "rgba(167,139,250,0.95)";
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.moveTo(pts[ai].x, pts[ai].y);
+		ctx.lineTo(pts[bi].x, pts[bi].y);
+		ctx.stroke();
+
+		// Points
+		for (let i = 0; i < pts.length; i++) {
+			const isHL = (i === ai || i === bi);
+			ctx.fillStyle = isHL ? "#a78bfa" : "#38bdf8";
+			ctx.beginPath();
+			ctx.arc(pts[i].x, pts[i].y, isHL ? 3.4 : 2.0, 0, Math.PI * 2);
+			ctx.fill();
+		}
+
+		requestAnimationFrame(tick);
+	}
+	tick();
+})();
+
+/* ──────────────────────────────────────────
+   8. MINI PREVIEWS — one per card
+   ────────────────────────────────────────── */
+
+/* 8a. CRT preview — three rotating "clock" dials at moduli 3, 5, 7 */
+(function previewCRT() {
+	const host = document.getElementById("prev-crt");
+	host.innerHTML = `
+		<svg viewBox="0 0 300 150">
+			<g id="dial-3"></g>
+			<g id="dial-5"></g>
+			<g id="dial-7"></g>
+		</svg>
+	`;
+	const svg = host.querySelector("svg");
+	const dials = [
+		{ id: "dial-3", cx: 60,  cy: 75, r: 36, m: 3, c: "#38bdf8" },
+		{ id: "dial-5", cx: 150, cy: 75, r: 42, m: 5, c: "#a78bfa" },
+		{ id: "dial-7", cx: 240, cy: 75, r: 50, m: 7, c: "#4ade80" },
+	];
+	dials.forEach(d => {
+		const g = svg.querySelector("#" + d.id);
+		// Outer circle
+		const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		c.setAttribute("cx", d.cx); c.setAttribute("cy", d.cy); c.setAttribute("r", d.r);
+		c.setAttribute("fill", "none"); c.setAttribute("stroke", "#2d3748"); c.setAttribute("stroke-width", "1");
+		g.appendChild(c);
+		// Tick marks
+		for (let i = 0; i < d.m; i++) {
+			const a = (i / d.m) * Math.PI * 2 - Math.PI/2;
+			const x1 = d.cx + Math.cos(a) * (d.r - 4);
+			const y1 = d.cy + Math.sin(a) * (d.r - 4);
+			const x2 = d.cx + Math.cos(a) * d.r;
+			const y2 = d.cy + Math.sin(a) * d.r;
+			const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+			ln.setAttribute("x1", x1); ln.setAttribute("y1", y1);
+			ln.setAttribute("x2", x2); ln.setAttribute("y2", y2);
+			ln.setAttribute("stroke", "#374151"); ln.setAttribute("stroke-width", "1");
+			g.appendChild(ln);
+		}
+		// Hand
+		const hand = document.createElementNS("http://www.w3.org/2000/svg", "line");
+		hand.setAttribute("x1", d.cx); hand.setAttribute("y1", d.cy);
+		hand.setAttribute("x2", d.cx); hand.setAttribute("y2", d.cy - d.r + 6);
+		hand.setAttribute("stroke", d.c); hand.setAttribute("stroke-width", "2");
+		hand.setAttribute("stroke-linecap", "round");
+		g.appendChild(hand);
+		// Hub
+		const hub = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		hub.setAttribute("cx", d.cx); hub.setAttribute("cy", d.cy); hub.setAttribute("r", "2.5");
+		hub.setAttribute("fill", d.c); g.appendChild(hub);
+		d.hand = hand;
+	});
+
+	let t = 0;
+	function tick() {
+		t = (t + 1) % 1000;
+		dials.forEach(d => {
+			const v = t % d.m;
+			const a = (v / d.m) * Math.PI * 2 - Math.PI/2;
+			const x = d.cx + Math.cos(a) * (d.r - 6);
+			const y = d.cy + Math.sin(a) * (d.r - 6);
+			d.hand.setAttribute("x2", x);
+			d.hand.setAttribute("y2", y);
+		});
+		setTimeout(() => requestAnimationFrame(tick), 300);
+	}
+	tick();
+})();
+
+/* 8b. Closest pair preview — moving points + sweep line */
+(function previewClosest() {
+	const host = document.getElementById("prev-closest");
+	const cv = document.createElement("canvas");
+	host.appendChild(cv);
+	const ctx = cv.getContext("2d");
+	let DPR = Math.min(window.devicePixelRatio || 1, 2);
+	let pts = [];
+
+	function resize() {
+		const r = host.getBoundingClientRect();
+		cv.width = r.width * DPR; cv.height = r.height * DPR;
+		ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+		pts = [];
+		for (let i = 0; i < 14; i++) {
+			pts.push({
+				x: Math.random() * r.width,
+				y: Math.random() * r.height,
+				vx: (Math.random() - 0.5) * 0.4,
+				vy: (Math.random() - 0.5) * 0.4,
+			});
+		}
+	}
+	resize();
+	window.addEventListener("resize", resize);
+
+	let sweep = 0;
+	function tick() {
+		const r = host.getBoundingClientRect();
+		ctx.clearRect(0, 0, r.width, r.height);
+
+		for (const p of pts) {
+			p.x += p.vx; p.y += p.vy;
+			if (p.x < 0 || p.x > r.width)  p.vx *= -1;
+			if (p.y < 0 || p.y > r.height) p.vy *= -1;
+		}
+
+		// Sweep line
+		sweep = (sweep + 0.6) % r.width;
+		ctx.strokeStyle = "rgba(167,139,250,0.5)";
+		ctx.lineWidth = 1;
+		ctx.setLineDash([4, 4]);
+		ctx.beginPath();
+		ctx.moveTo(sweep, 0); ctx.lineTo(sweep, r.height);
+		ctx.stroke();
+		ctx.setLineDash([]);
+
+		// Find closest pair
+		let best = Infinity, ai = 0, bi = 1;
+		for (let i = 0; i < pts.length; i++) {
+			for (let j = i+1; j < pts.length; j++) {
+				const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+				if (d < best) { best = d; ai = i; bi = j; }
+			}
+		}
+
+		ctx.strokeStyle = "#4ade80";
+		ctx.lineWidth = 1.5;
+		ctx.beginPath();
+		ctx.moveTo(pts[ai].x, pts[ai].y);
+		ctx.lineTo(pts[bi].x, pts[bi].y);
+		ctx.stroke();
+
+		for (let i = 0; i < pts.length; i++) {
+			const hl = (i === ai || i === bi);
+			ctx.fillStyle = hl ? "#4ade80" : "#38bdf8";
+			ctx.beginPath();
+			ctx.arc(pts[i].x, pts[i].y, hl ? 3.2 : 2.0, 0, Math.PI * 2);
+			ctx.fill();
+		}
+
+		requestAnimationFrame(tick);
+	}
+	tick();
+})();
+
+/* 8c. FPTAS preview — DP-table cells animating */
+(function previewFPTAS() {
+	const host = document.getElementById("prev-fptas");
+	const COLS = 14, ROWS = 6;
+	let svg = `<svg viewBox="0 0 280 120">`;
+	for (let r = 0; r < ROWS; r++) {
+		for (let c = 0; c < COLS; c++) {
+			const x = 6 + c * 19;
+			const y = 6 + r * 18;
+			svg += `<rect class="dpc" data-r="${r}" data-c="${c}" x="${x}" y="${y}" width="17" height="16" rx="2" fill="#1a2236" stroke="#2d3748" stroke-width="0.5"/>`;
+		}
+	}
+	svg += `</svg>`;
+	host.innerHTML = svg;
+	const cells = host.querySelectorAll(".dpc");
+
+	let r = 0, c = 0;
+	function step() {
+		const idx = r * COLS + c;
+		const cell = cells[idx];
+		// Sweep colour
+		const v = (r * 7 + c * 3) % 100 / 100;
+		const fill = v < 0.4 ? "#1a2236"
+		          : v < 0.7 ? "rgba(56,189,248,0.35)"
+		          :           "rgba(74,222,128,0.55)";
+		cell.setAttribute("fill", fill);
+		c++;
+		if (c >= COLS) { c = 0; r++; }
+		if (r >= ROWS) {
+			r = 0;
+			setTimeout(() => cells.forEach(cl => cl.setAttribute("fill", "#1a2236")), 350);
+		}
+		setTimeout(step, 60);
+	}
+	step();
+})();
+
+/* 8d. FFT preview — butterfly graph + rotating ω on the unit circle */
+(function previewFFT() {
+	const host = document.getElementById("prev-fft");
+	host.innerHTML = `
+		<svg viewBox="0 0 300 150">
+			<!-- butterfly columns -->
+			<g id="bfly"></g>
+			<!-- ω circle on the right -->
+			<g transform="translate(240,75)">
+				<circle r="36" fill="none" stroke="#2d3748"/>
+				<line x1="-40" y1="0" x2="40" y2="0" stroke="#1f2937"/>
+				<line x1="0" y1="-40" x2="0" y2="40" stroke="#1f2937"/>
+				<g id="omega-host"></g>
+			</g>
+		</svg>
+	`;
+	const svg = host.querySelector("svg");
+	const bfly = svg.querySelector("#bfly");
+
+	// 4-point FFT butterfly: 3 columns of 4 nodes
+	const NS = "http://www.w3.org/2000/svg";
+	const cols = 3, rows = 4;
+	const x0 = 30, y0 = 24, dx = 50, dy = 30;
+	const nodes = [];
+	for (let c = 0; c < cols; c++) {
+		const col = [];
+		for (let r = 0; r < rows; r++) {
+			const cx = x0 + c * dx, cy = y0 + r * dy;
+			const n = document.createElementNS(NS, "circle");
+			n.setAttribute("cx", cx); n.setAttribute("cy", cy); n.setAttribute("r", 4);
+			n.setAttribute("fill", "#0f172a"); n.setAttribute("stroke", "#38bdf8"); n.setAttribute("stroke-width", "1.2");
+			bfly.appendChild(n);
+			col.push({ x: cx, y: cy, el: n });
+		}
+		nodes.push(col);
+	}
+	// Edges (typical Cooley-Tukey wiring)
+	const edges = [];
+	const wire = (c, r1, r2) => {
+		const a = nodes[c][r1], b = nodes[c+1][r2];
+		const ln = document.createElementNS(NS, "line");
+		ln.setAttribute("x1", a.x); ln.setAttribute("y1", a.y);
+		ln.setAttribute("x2", b.x); ln.setAttribute("y2", b.y);
+		ln.setAttribute("stroke", "#374151"); ln.setAttribute("stroke-width", 1);
+		bfly.appendChild(ln);
+		edges.push(ln);
+	};
+	// stage 1 (pair 0/2, 1/3)
+	wire(0,0,0); wire(0,2,1); wire(0,0,1); wire(0,2,0);
+	wire(0,1,2); wire(0,3,3); wire(0,1,3); wire(0,3,2);
+	// stage 2 (pair 0/1, 2/3)
+	wire(1,0,0); wire(1,1,1); wire(1,0,1); wire(1,1,0);
+	wire(1,2,2); wire(1,3,3); wire(1,2,3); wire(1,3,2);
+
+	// ω rotor
+	const oh = svg.querySelector("#omega-host");
+	const omegaPt = document.createElementNS(NS, "circle");
+	omegaPt.setAttribute("r", "3.5");
+	omegaPt.setAttribute("fill", "#a78bfa");
+	const omegaLine = document.createElementNS(NS, "line");
+	omegaLine.setAttribute("x1", 0); omegaLine.setAttribute("y1", 0);
+	omegaLine.setAttribute("stroke", "#a78bfa"); omegaLine.setAttribute("stroke-width", 1.5);
+	oh.appendChild(omegaLine);
+	oh.appendChild(omegaPt);
+
+	let t = 0;
+	function tick() {
+		t += 0.02;
+		const x = Math.cos(t) * 36, y = Math.sin(t) * 36;
+		omegaPt.setAttribute("cx", x); omegaPt.setAttribute("cy", y);
+		omegaLine.setAttribute("x2", x); omegaLine.setAttribute("y2", y);
+
+		// Pulse one column at a time
+		const stage = Math.floor((t * 0.7) % 3);
+		nodes.forEach((col, ci) => {
+			col.forEach(n => {
+				n.el.setAttribute("fill", ci === stage ? "#38bdf8" : "#0f172a");
+			});
+		});
+		requestAnimationFrame(tick);
+	}
+	tick();
+})();
+
+/* ──────────────────────────────────────────
+   9. CRT PLAYGROUND
+   ────────────────────────────────────────── */
+function gcdExt(a, b) {
+	if (b === 0) return [a, 1n, 0n];
+	const [g, x1, y1] = gcdExt(b, a % b);
+	return [g, y1, x1 - (a / b) * y1];
+}
+function modInv(a, m) {
+	a = ((a % m) + m) % m;
+	const [g, x] = gcdExt(a, m);
+	if (g !== 1n) return null;
+	return ((x % m) + m) % m;
+}
+function gcd(a, b) { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b) { [a, b] = [b, a % b]; } return a; }
+
+function solveCRT(pairs) {
+	// Returns { x, M, steps } or { error }
+	let X = 0n, M = 1n;
+	const steps = [];
+	for (const [a0, m0] of pairs) {
+		if (m0 <= 0n) return { error: "Modulus must be positive." };
+		const a = ((a0 % m0) + m0) % m0;
+		if (gcd(M, m0) !== 1n) return { error: `Moduli ${M} and ${m0} are not coprime — classic CRT fails.` };
+		// Solve X' = X + M·t with X' ≡ a (mod m0)  →  t ≡ (a-X)·M⁻¹ (mod m0)
+		const inv = modInv(M, m0);
+		if (inv === null) return { error: `M⁻¹ does not exist mod ${m0}.` };
+		const t = (((a - X) % m0) + m0) % m0 * inv % m0;
+		X = X + M * t;
+		M = M * m0;
+		X = ((X % M) + M) % M;
+		steps.push({ a, m: m0, X, M });
+	}
+	return { x: X, M, steps };
+}
+
+function readPairs() {
+	const a = ["a1", "a2", "a3"].map(id => BigInt(parseInt(document.getElementById(id).value || "0", 10)));
+	const m = ["m1", "m2", "m3"].map(id => BigInt(parseInt(document.getElementById(id).value || "0", 10)));
+	return [[a[0], m[0]], [a[1], m[1]], [a[2], m[2]]];
+}
+
+function renderCRT() {
+	const out = document.getElementById("crt-output");
+	const pairs = readPairs();
+	const result = solveCRT(pairs);
+	if (result.error) {
+		out.innerHTML = `<span class="err">⚠ ${result.error}</span>`;
+		return;
+	}
+	let html = "";
+	html += `<span class="dim">// system</span>\n`;
+	pairs.forEach(([a, m], i) => {
+		html += `  x ≡ ${a} (mod ${m})\n`;
+	});
+	html += `\n<span class="dim">// step-by-step CRT merge</span>\n`;
+	let prev = { X: 0n, M: 1n };
+	result.steps.forEach((s, i) => {
+		html += `  step ${i+1}: merge mod ${s.m}  →  x ≡ <span class="pop">${s.X}</span> (mod ${s.M})\n`;
+		prev = s;
+	});
+	html += `\n<span class="ok">✓ x ≡ ${result.x} (mod ${result.M})</span>`;
+	// Verify
+	const ok = pairs.every(([a, m]) => ((result.x % m) + m) % m === ((a % m) + m) % m);
+	html += ok ? `\n<span class="dim">// verified against all congruences</span>`
+	           : `\n<span class="err">⚠ verification failed</span>`;
+	out.innerHTML = html.replace(/\n/g, "<br>");
+}
+
+["a1","a2","a3","m1","m2","m3"].forEach(id => {
+	document.getElementById(id).addEventListener("input", renderCRT);
+});
+
+document.getElementById("crt-preset-1").addEventListener("click", () => setCRT([2,3], [3,5], [2,7]));
+document.getElementById("crt-preset-2").addEventListener("click", () => setCRT([1,4], [4,9], [6,11]));
+document.getElementById("crt-randomize").addEventListener("click", randomizeCRT);
+
+function setCRT(p1, p2, p3) {
+	document.getElementById("a1").value = p1[0]; document.getElementById("m1").value = p1[1];
+	document.getElementById("a2").value = p2[0]; document.getElementById("m2").value = p2[1];
+	document.getElementById("a3").value = p3[0]; document.getElementById("m3").value = p3[1];
+	renderCRT();
+}
+function randomizeCRT() {
+	// pick coprime moduli from a small pool
+	const pool = [3, 4, 5, 7, 9, 11, 13];
+	const pickCoprime = () => {
+		while (true) {
+			const m1 = pool[Math.floor(Math.random() * pool.length)];
+			const m2 = pool[Math.floor(Math.random() * pool.length)];
+			const m3 = pool[Math.floor(Math.random() * pool.length)];
+			const cp = (a,b) => { while (b) { [a,b] = [b, a%b]; } return a === 1; };
+			if (cp(m1,m2) && cp(m2,m3) && cp(m1,m3)) return [m1, m2, m3];
+		}
+	};
+	const [m1, m2, m3] = pickCoprime();
+	setCRT(
+		[Math.floor(Math.random() * m1), m1],
+		[Math.floor(Math.random() * m2), m2],
+		[Math.floor(Math.random() * m3), m3],
+	);
+	toast("Randomized CRT inputs", "");
+}
+renderCRT();
+
+/* ──────────────────────────────────────────
+   10. QUIZ
+   ────────────────────────────────────────── */
+const QUIZ = [
+	{
+		t: "Why does the closest-pair strip step only need to compare each point to its next 7 neighbours?",
+		opts: [
+			"Because there are at most 7 points in any δ × 2δ box (geometric packing).",
+			"Because the divide step always splits into 7 buckets.",
+			"Because of the master theorem with constant 7.",
+			"Because sorting reduces 8 comparisons to 7."
+		],
+		ans: 0,
+		topic: "Closest pair · 7-point lemma",
+	},
+	{
+		t: "RSA-CRT decrypts faster than direct RSA-modular-exponentiation because…",
+		opts: [
+			"It avoids modular inversion entirely.",
+			"It works mod p and mod q (each ~½ the bit-length) and recombines with CRT.",
+			"It precomputes the message at key generation time.",
+			"It uses Montgomery multiplication, which CRT is incompatible with."
+		],
+		ans: 1,
+		topic: "RSA-CRT speedup",
+	},
+	{
+		t: "An FPTAS for 0/1 knapsack scales values by K = εV/n. Why this particular K?",
+		opts: [
+			"It is the largest K that keeps the DP table polynomial-sized.",
+			"It minimises memory at the cost of accuracy.",
+			"It bounds total rounding loss by ε·OPT, hence (1−ε)-approximation.",
+			"It guarantees the optimal item is always picked first."
+		],
+		ans: 2,
+		topic: "FPTAS scaling trick",
+	},
+	{
+		t: "Cooley–Tukey FFT achieves O(n log n) by exploiting which property of ωₙ?",
+		opts: [
+			"ωₙⁿ = 0",
+			"ω₂ₙᵏ = ωₙᵏ/²  (halving lemma)",
+			"All powers of ωₙ are real.",
+			"ωₙ commutes with addition only on prime n."
+		],
+		ans: 1,
+		topic: "FFT halving lemma",
+	},
+];
+
+(function renderQuiz() {
+	const host = document.getElementById("quiz");
+	let answered = 0, correct = 0;
+	QUIZ.forEach((q, qi) => {
+		const block = document.createElement("div");
+		block.style.marginBottom = qi < QUIZ.length - 1 ? "18px" : "";
+		const opts = q.opts.map((o, oi) =>
+			`<button class="quiz-opt" data-q="${qi}" data-o="${oi}">${String.fromCharCode(65+oi)}. ${o}</button>`
+		).join("");
+		block.innerHTML = `
+			<div class="quiz-q"><span class="q-num">Q${qi+1} · ${q.topic}</span>${q.t}</div>
+			<div class="quiz-options">${opts}</div>
+		`;
+		host.appendChild(block);
+	});
+	const foot = document.createElement("div");
+	foot.className = "quiz-foot";
+	foot.innerHTML = `<span>Tip: shortcuts <kbd>1</kbd>–<kbd>4</kbd> open the matching lesson for each topic.</span>
+		<span class="score" id="quiz-score">0 / ${QUIZ.length}</span>`;
+	host.appendChild(foot);
+
+	host.addEventListener("click", (e) => {
+		const btn = e.target.closest(".quiz-opt");
+		if (!btn || btn.classList.contains("locked")) return;
+		const qi = +btn.dataset.q, oi = +btn.dataset.o;
+		const q = QUIZ[qi];
+		// lock the whole question
+		host.querySelectorAll(`[data-q="${qi}"]`).forEach(b => b.classList.add("locked"));
+		if (oi === q.ans) {
+			btn.classList.add("correct");
+			correct++;
+			toast(`✓ Correct — ${q.topic}`, "green");
+		} else {
+			btn.classList.add("wrong");
+			host.querySelector(`[data-q="${qi}"][data-o="${q.ans}"]`).classList.add("correct");
+			toast(`✗ Not quite — see lesson for ${q.topic}`, "amber");
+		}
+		answered++;
+		document.getElementById("quiz-score").textContent = `${correct} / ${QUIZ.length}`;
+		if (answered === QUIZ.length && correct === QUIZ.length) {
+			setTimeout(() => toast("🏆 Perfect score!", "green"), 400);
+		}
+	});
+})();
+
+/* ──────────────────────────────────────────
+   11. TOPIC GRAPH (clickable SVG)
+   ────────────────────────────────────────── */
+(function topicGraph() {
+	const svg = document.getElementById("graph");
+	const NS = "http://www.w3.org/2000/svg";
+
+	const center = { x: 400, y: 160, label: "Algorithms\nTeaching", color: "#38bdf8" };
+	const nodes = [
+		{ x: 130, y: 70,  label: "🔐 CRT & RSA-CRT",       file: "ChineseRemainder_RSA.html", color: "#38bdf8" },
+		{ x: 130, y: 250, label: "📍 Closest Pair (D&C)", file: "ClosestPairPoints.html",    color: "#4ade80" },
+		{ x: 670, y: 70,  label: "🎒 FPTAS · Knapsack",    file: "FPTAS.html",                color: "#fbbf24" },
+		{ x: 670, y: 250, label: "🌊 DFT / FFT Circuits",  file: "dft_fft_circuits.html",     color: "#a78bfa" },
+	];
+
+	// Edges
+	nodes.forEach(n => {
+		const ln = document.createElementNS(NS, "line");
+		ln.setAttribute("x1", center.x); ln.setAttribute("y1", center.y);
+		ln.setAttribute("x2", n.x); ln.setAttribute("y2", n.y);
+		ln.setAttribute("stroke", n.color); ln.setAttribute("stroke-width", "1.5");
+		ln.setAttribute("stroke-opacity", "0.45");
+		svg.appendChild(ln);
+	});
+
+	const drawNode = (n, isCenter = false) => {
+		const g = document.createElementNS(NS, "g");
+		g.setAttribute("class", "gnode");
+		if (n.file) g.style.cursor = "pointer";
+
+		const w = isCenter ? 150 : 200, h = isCenter ? 60 : 44;
+		const x = n.x - w/2, y = n.y - h/2;
+		const rect = document.createElementNS(NS, "rect");
+		rect.setAttribute("x", x); rect.setAttribute("y", y);
+		rect.setAttribute("width", w); rect.setAttribute("height", h);
+		rect.setAttribute("rx", 10); rect.setAttribute("ry", 10);
+		rect.setAttribute("fill", isCenter ? "#1f6feb" : "#1a2236");
+		rect.setAttribute("stroke", n.color); rect.setAttribute("stroke-width", "1.5");
+		g.appendChild(rect);
+
+		const lines = n.label.split("\n");
+		lines.forEach((line, i) => {
+			const text = document.createElementNS(NS, "text");
+			text.setAttribute("x", n.x);
+			text.setAttribute("y", n.y - (lines.length-1)*8 + i*16 + 5);
+			text.setAttribute("text-anchor", "middle");
+			text.setAttribute("font-family", "IBM Plex Sans, sans-serif");
+			text.setAttribute("font-size", isCenter ? "14" : "12");
+			text.setAttribute("font-weight", "600");
+			text.setAttribute("fill", isCenter ? "#fff" : "#e2e8f0");
+			text.textContent = line;
+			g.appendChild(text);
+		});
+
+		if (n.file) {
+			g.addEventListener("click", () => window.location.href = n.file);
+		}
+		svg.appendChild(g);
+	};
+	drawNode(center, true);
+	nodes.forEach(n => drawNode(n));
+})();
+
+/* ──────────────────────────────────────────
+   12. WELCOME TOAST
+   ────────────────────────────────────────── */
+setTimeout(() => toast("Tip: press 1–4 to jump straight into a lesson.", ""), 700);
+</script>
+</body>
+</html>
