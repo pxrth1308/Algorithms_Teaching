@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Closest Pair of Points (Divide &amp; Conquer) — BSD 404</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+	--bg: #0a0e1a;
+	--panel: #111827;
+	--panel2: #1a2236;
+	--panel3: #0f172a;
+	--border: #2d3748;
+	--border2: #374151;
+	--text: #e2e8f0;
+	--text-dim: #94a3b8;
+	--text-muted: #64748b;
+	--accent: #38bdf8;
+	--accent2: #0ea5e9;
+	--green: #4ade80;
+	--green2: #22c55e;
+	--amber: #fbbf24;
+	--amber2: #f59e0b;
+	--red: #f87171;
+	--red2: #ef4444;
+	--purple: #a78bfa;
+	--teal: #2dd4bf;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+	font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+	background: var(--bg);
+	color: var(--text);
+	min-height: 100vh;
+	font-size: 13px;
+}
+
+a { color: var(--accent); }
+
+#main-tool, #visualization, #lecture-notes { background: var(--bg); }
+
+header {
+	background: linear-gradient(135deg, #0f172a 0%, #1a2236 100%);
+	border-bottom: 1px solid var(--border);
+	padding: 14px 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+header h1 { font-size: 17px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; }
+header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
+.badge {
+	display: inline-block; padding: 2px 8px; border-radius: 9999px;
+	font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+	background: rgba(56,189,248,0.15); color: var(--accent);
+	border: 1px solid rgba(56,189,248,0.3); margin-left: 8px;
+}
+
+#lecture-notes { background: var(--bg); border-bottom: 1px solid var(--border); }
+.notes-header {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 10px 24px; cursor: pointer; user-select: none; gap: 12px;
+}
+.notes-header:hover { background: rgba(255,255,255,0.02); }
+.notes-header h2 { font-size: 13px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.3px; }
+.notes-toggle { font-size: 11px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 2px 8px; border-radius: 4px; }
+.notes-toggle:hover { background: rgba(56,189,248,0.1); }
+.notes-body { padding: 0 24px 20px; display: none; }
+.notes-body.open { display: block; }
+
+.algo-tabs {
+	display: flex; gap: 8px; padding: 10px 24px;
+	background: var(--panel3); border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.algo-tab {
+	padding: 7px 12px; border-radius: 9999px;
+	border: 1px solid var(--border2); background: var(--panel2);
+	color: var(--text-dim); font-size: 11px; font-weight: 700;
+	letter-spacing: 0.4px; cursor: pointer; transition: all 0.15s;
+}
+.algo-tab:hover { background: rgba(56,189,248,0.08); color: var(--text); }
+.algo-tab.active { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.45); color: var(--accent); }
+
+.roadmap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.roadmap a {
+	padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
+	background: rgba(56,189,248,0.1); color: var(--accent);
+	border: 1px solid rgba(56,189,248,0.2); text-decoration: none; white-space: nowrap;
+}
+.roadmap a:hover { background: rgba(56,189,248,0.2); }
+
+.notes-section { margin: 20px 0; }
+.notes-section h3 {
+	font-size: 14px; font-weight: 600; color: var(--accent);
+	margin-bottom: 8px; border-left: 3px solid var(--accent); padding-left: 10px;
+}
+.notes-section p { color: var(--text-dim); line-height: 1.65; margin-bottom: 8px; }
+.notes-section ul { margin: 8px 0 8px 20px; color: var(--text-dim); line-height: 1.85; }
+.notes-section li { margin-bottom: 4px; }
+.notes-section code {
+	background: var(--panel2); color: var(--teal);
+	padding: 1px 5px; border-radius: 3px;
+	font-family: "Consolas", monospace; font-size: 11px;
+}
+
+.key-concept {
+	background: rgba(56,189,248,0.06);
+	border: 1px solid rgba(56,189,248,0.2);
+	border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+}
+.key-concept .kc-title {
+	font-size: 11px; font-weight: 700; color: var(--accent);
+	letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;
+}
+.key-concept p { color: var(--text-dim); margin: 0; font-size: 12px; line-height: 1.65; }
+
+.highlight-box {
+	background: rgba(251,191,36,0.07);
+	border: 1px solid rgba(251,191,36,0.25);
+	border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+}
+.highlight-box p { color: var(--text-dim); margin: 0; font-size: 12px; line-height: 1.65; }
+.highlight-box strong { color: var(--amber); }
+
+.danger-box {
+	background: rgba(248,113,113,0.07);
+	border: 1px solid rgba(248,113,113,0.25);
+	border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+}
+.danger-box p { color: var(--text-dim); margin: 0; font-size: 12px; line-height: 1.65; }
+.danger-box strong { color: var(--red); }
+
+.worked-example {
+	background: var(--panel2);
+	border: 1px solid var(--border);
+	border-radius: 6px; padding: 14px; margin: 10px 0;
+	font-family: "Consolas", monospace; font-size: 11px;
+	color: var(--text-dim); white-space: pre;
+	overflow-x: auto; line-height: 1.55;
+}
+
+.complexity-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+.complexity-table th, .complexity-table td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.complexity-table th { background: var(--panel2); color: var(--accent); font-weight: 600; }
+.complexity-table td { color: var(--text-dim); }
+.complexity-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.formula {
+	font-family: "Consolas", monospace; font-size: 13px;
+	color: var(--teal); background: var(--panel3);
+	border: 1px dashed var(--border2);
+	padding: 8px 10px; border-radius: 5px; margin: 6px 0;
+}
+
+#main-tool { display: flex; min-height: calc(100vh - 100px); gap: 0; }
+
+#controls {
+	width: 420px; min-width: 360px;
+	background: var(--panel); border-right: 1px solid var(--border);
+	padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
+}
+.ctrl-section {
+	background: var(--panel2); border: 1px solid var(--border);
+	border-radius: 8px; padding: 12px;
+}
+.ctrl-section-title {
+	font-size: 10px; font-weight: 700; color: var(--text-muted);
+	letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+}
+
+.ctrl-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.ctrl-btn {
+	padding: 7px 10px; border-radius: 6px;
+	background: var(--panel3); border: 1px solid var(--border2);
+	color: var(--text-dim); cursor: pointer;
+	font-size: 11px; font-weight: 600; transition: all 0.15s;
+}
+.ctrl-btn:hover { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: var(--text); }
+.ctrl-btn.primary { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.4); color: var(--accent); }
+.ctrl-btn.primary:hover { background: rgba(56,189,248,0.25); }
+.ctrl-btn.secondary { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.35); color: var(--accent); }
+.ctrl-btn.danger { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: var(--red); }
+
+.speed-row { display: flex; align-items: center; gap: 8px; }
+.speed-row label { font-size: 12px; color: var(--text-dim); flex: 1; }
+.speed-value { font-size: 12px; color: var(--accent); font-weight: 600; min-width: 32px; text-align: right; }
+input[type=range] {
+	flex: 2; appearance: none; -webkit-appearance: none;
+	height: 4px; background: var(--border2); border-radius: 2px; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+	-webkit-appearance: none; width: 14px; height: 14px;
+	border-radius: 50%; background: var(--accent); cursor: pointer;
+	box-shadow: 0 0 0 2px rgba(56,189,248,0.35);
+}
+
+.status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.status-pill {
+	display: inline-flex; align-items: center; gap: 6px;
+	padding: 2px 9px; border-radius: 9999px;
+	font-size: 10px; font-weight: 700;
+	text-transform: uppercase; letter-spacing: 0.6px;
+}
+.status-idle { background: rgba(100,116,139,0.15); color: var(--text-muted); border: 1px solid rgba(100,116,139,0.3); }
+.status-ready { background: rgba(56,189,248,0.1); color: var(--accent); border: 1px solid rgba(56,189,248,0.3); }
+.status-playing { background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+.status-paused { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+.status-done { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+.status-error { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+
+.counters-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.counter-box {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 8px; text-align: center;
+}
+.counter-val { font-size: 20px; font-weight: 700; color: var(--accent); font-family: "Consolas", monospace; }
+.counter-label { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 2px; }
+
+.kv-list { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.kv-item {
+	display: flex; justify-content: space-between; align-items: center;
+	background: var(--panel3); border: 1px solid var(--border);
+	padding: 6px 8px; border-radius: 6px;
+	font-family: "JetBrains Mono", monospace; font-size: 11px;
+}
+.kv-item span { color: var(--text-dim); }
+.kv-item strong { color: var(--text); }
+
+#visualization {
+	flex: 1; padding: 16px;
+	display: flex; flex-direction: column; gap: 14px;
+	overflow-y: auto; min-width: 0;
+}
+
+.legend-bar {
+	display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 10px 14px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+.viz-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.panel {
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 14px;
+	flex: 1; min-width: 280px;
+}
+.panel-title {
+	font-size: 11px; font-weight: 700; color: var(--text-muted);
+	letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px;
+}
+
+.text-area {
+	width: 100%; min-height: 110px;
+	background: var(--panel3); border: 1px solid var(--border2);
+	color: var(--text); border-radius: 6px; padding: 8px;
+	font-family: "Consolas", monospace; font-size: 11px;
+	resize: vertical;
+}
+.text-area:focus { outline: none; border-color: var(--accent); background: rgba(56,189,248,0.05); }
+.input-hint { font-size: 10px; color: var(--text-muted); }
+
+.points-canvas {
+	width: 100%; height: 360px;
+	background: var(--panel3);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	display: block;
+}
+
+.recursion-tree {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 10px; min-height: 80px;
+	max-height: 240px; overflow: auto;
+	font-family: "Consolas", monospace; font-size: 11px;
+	color: var(--text-dim);
+}
+.tree-row { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 0; }
+.tree-row-label { color: var(--text-muted); font-size: 9px; min-width: 56px; padding-top: 6px; }
+.tree-node {
+	display: inline-block;
+	padding: 4px 8px;
+	border-radius: 4px;
+	background: var(--panel2);
+	border: 1px solid var(--border);
+	color: var(--text-dim);
+	font-size: 10px;
+}
+.tree-node.active { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.55); color: var(--amber); font-weight: 700; }
+.tree-node.done { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.35); color: var(--green); }
+
+.pseudocode {
+	font-family: "Consolas", monospace; font-size: 12px;
+	background: var(--panel3); border-radius: 6px;
+	padding: 10px 12px; list-style: none; line-height: 1.85;
+}
+.pseudocode li {
+	display: flex; gap: 10px; padding: 2px 6px;
+	border-radius: 3px; cursor: default;
+	transition: background 0.15s; position: relative;
+}
+.pseudocode li:hover { background: rgba(255,255,255,0.04); }
+.pseudocode li.active { background: rgba(56,189,248,0.12); }
+.pseudo-ln { color: var(--text-muted); user-select: none; min-width: 18px; text-align: right; }
+.pseudo-code { color: var(--text-dim); }
+.pseudocode li.active .pseudo-code { color: var(--text); }
+
+.pseudo-tooltip {
+	display: none; position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
+	background: var(--panel2); border: 1px solid var(--accent);
+	border-radius: 5px; padding: 6px 10px; font-size: 11px; color: var(--text-dim);
+	z-index: 10; pointer-events: none; max-width: 280px; white-space: normal; margin-left: 8px;
+}
+.pseudocode li:hover .pseudo-tooltip { display: block; }
+
+.explanation-panel {
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 14px;
+}
+#step-explanation {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 12px;
+	font-size: 12px; color: var(--text-dim);
+	line-height: 1.6; min-height: 100px;
+}
+#step-explanation .exp-title { font-weight: 700; color: var(--text); margin-bottom: 6px; font-size: 13px; }
+#step-explanation .exp-formula { font-family: "Consolas", monospace; color: var(--teal); margin: 4px 0; }
+
+.history-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.history-scroll { max-height: 200px; overflow-y: auto; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: "Consolas", monospace; }
+.history-table th {
+	background: var(--panel3); color: var(--text-muted);
+	font-weight: 600; font-size: 10px; letter-spacing: 0.5px;
+	text-transform: uppercase; padding: 5px 8px; text-align: left;
+	position: sticky; top: 0; z-index: 1;
+}
+.history-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }
+.history-table tr:hover td { background: rgba(255,255,255,0.03); color: var(--text); }
+.history-table tr.history-active td { background: rgba(56,189,248,0.08); color: var(--accent); }
+
+@media (max-width: 980px) {
+	#main-tool { flex-direction: column; }
+	#controls { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+<header>
+	<div>
+		<h1>Closest Pair of Points (Divide &amp; Conquer)<span class="badge">CLO-4</span></h1>
+		<div class="meta">BSD 404 — Algorithms II &nbsp;|&nbsp; Divide and Conquer Geometry</div>
+	</div>
+	<div class="meta">Student: Aggarwal, Parth &nbsp;|&nbsp; ID: 20220001200</div>
+</header>
+
+<nav class="algo-tabs">
+	<button class="algo-tab" onclick="location.href='dft_fft_circuits.html'">Part 1: DFT / FFT Circuits</button>
+	<button class="algo-tab" onclick="location.href='ChineseRemainder_RSA.html'">Part 2: CRT / RSA-CRT</button>
+	<button class="algo-tab active" onclick="location.href='ClosestPairPoints.html'">Part 3: Closest Pair of Points</button>
+	<button class="algo-tab" onclick="location.href='FPTAS.html'">Part 4: FPTAS</button>
+</nav>
+
+<section id="lecture-notes">
+	<div class="notes-header" onclick="toggleNotes()">
+		<h2>📚 Lecture Notes — Closest Pair (Divide &amp; Conquer)</h2>
+		<button class="notes-toggle" type="button" id="notes-toggle-btn">Collapse ▲</button>
+	</div>
+	<div class="notes-body open" id="notes-body">
+		<div class="roadmap">
+			<a href="#sec1">1. The Problem</a>
+			<a href="#sec2">2. Brute Force</a>
+			<a href="#sec3">3. Divide</a>
+			<a href="#sec4">4. Conquer (Strip)</a>
+			<a href="#sec5">5. The 7-Point Lemma</a>
+			<a href="#sec6">6. Recurrence</a>
+			<a href="#sec7">7. Complexity</a>
+			<a href="#sec8">8. Worked Example</a>
+		</div>
+
+		<div class="notes-section" id="sec1">
+			<h3>1 — The Problem</h3>
+			<p>Given <code>n</code> points in the plane, find the pair with minimum Euclidean distance.</p>
+			<div class="key-concept">
+				<div class="kc-title">Goal</div>
+				<p>Solve in <code>O(n log n)</code> using divide-and-conquer instead of the naive <code>O(n²)</code> all-pairs scan.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec2">
+			<h3>2 — Brute Force Baseline</h3>
+			<p>Compare every pair: <code>n(n−1)/2</code> distance computations, giving <code>O(n²)</code>. Fine for small inputs but quadratic growth quickly becomes prohibitive.</p>
+		</div>
+
+		<div class="notes-section" id="sec3">
+			<h3>3 — Divide</h3>
+			<p>Sort points by x-coordinate once. At each level, split the sorted list at the median into <strong>L</strong> (left half) and <strong>R</strong> (right half). Recursively find the closest pair in each half.</p>
+			<div class="key-concept">
+				<div class="kc-title">Sub-results</div>
+				<p>Let <code>δ_L</code> and <code>δ_R</code> be the closest distances returned by the two halves. Set <code>δ = min(δ_L, δ_R)</code>.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec4">
+			<h3>4 — Conquer: The Strip</h3>
+			<p>The closest pair could still straddle the split line. Build a <strong>strip</strong> of all points whose x-coordinate is within <code>δ</code> of the split line, sorted by y-coordinate.</p>
+			<div class="key-concept">
+				<div class="kc-title">Why a strip?</div>
+				<p>Any cross-boundary pair closer than <code>δ</code> must lie within horizontal distance <code>δ</code> of the split — otherwise their x-gap alone already exceeds <code>δ</code>.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec5">
+			<h3>5 — The 7-Point Lemma</h3>
+			<p>Scanning the strip in y-order, each point only needs to be compared with the next <strong>≤ 7</strong> points.</p>
+			<div class="highlight-box">
+				<p><strong>Geometric argument:</strong> Points already-better-than-<code>δ</code> are at least <code>δ</code> apart from each other. A <code>δ × 2δ</code> rectangle therefore contains at most 8 such points (a 2×4 grid of <code>δ/2</code> cells), so any candidate cross-pair must appear within 7 positions of the current point in y-order.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec6">
+			<h3>6 — Recurrence</h3>
+			<p>Two recursive calls of size <code>n/2</code> plus a linear strip scan:</p>
+			<div class="formula">T(n) = 2 · T(n/2) + O(n)  →  T(n) = O(n log n)</div>
+			<p>(Master Theorem, case 2.) The initial sort is also <code>O(n log n)</code> and is amortized once across all levels by maintaining a y-sorted view.</p>
+		</div>
+
+		<div class="notes-section" id="sec7">
+			<h3>7 — Complexity</h3>
+			<table class="complexity-table">
+				<tr><th>Method</th><th>Time</th><th>Notes</th></tr>
+				<tr><td>Brute force</td><td style="color:var(--red)">O(n²)</td><td>Compare all pairs</td></tr>
+				<tr><td>Divide &amp; Conquer</td><td style="color:var(--green)">O(n log n)</td><td>Sort + recursive halves + strip scan</td></tr>
+			</table>
+		</div>
+
+		<div class="notes-section" id="sec8">
+			<h3>8 — Worked Example</h3>
+			<div class="worked-example">Points: (1,1), (2,3), (4,2), (6,5), (7,1)
+Sort by x → already sorted.
+Split at x = 4 (median).
+  L = {(1,1), (2,3)}        δ_L = √5  ≈ 2.236
+  R = {(4,2), (6,5), (7,1)} δ_R = √13 ≈ 3.606  (base case)
+δ = min(δ_L, δ_R) = √5
+
+Strip = points with |x − 4| < √5 → (2,3), (4,2), (6,5)
+Sort strip by y, scan with 7-point window:
+  (4,2) vs (2,3):  d = √5    no improvement
+  (4,2) vs (6,5):  d = √13   no improvement (y-gap ≥ δ → break)
+
+Closest pair = (1,1)–(2,3),  distance = √5 ≈ 2.236</div>
+		</div>
+	</div>
+</section>
+
+<main id="main-tool">
+	<aside id="controls">
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Preset Examples</div>
+			<div class="ctrl-buttons">
+				<button class="ctrl-btn secondary" type="button" id="preset-small">Small Set</button>
+				<button class="ctrl-btn" type="button" id="preset-grid">Grid Points</button>
+				<button class="ctrl-btn" type="button" id="preset-random">Random Spread</button>
+				<button class="ctrl-btn" type="button" id="preset-clustered">Clustered</button>
+			</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Custom Input</div>
+			<textarea class="text-area" id="points-input" spellcheck="false">1,1
+2,3
+4,2
+6,5
+7,1</textarea>
+			<div class="ctrl-buttons" style="margin-top: 8px;">
+				<button class="ctrl-btn primary" type="button" id="apply-points">Apply Points</button>
+			</div>
+			<div class="input-hint">Enter one point per line as <code>x,y</code>. At least 2 points required.</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Animation Controls</div>
+			<div class="speed-row">
+				<label for="speed">Speed</label>
+				<input type="range" id="speed" min="0" max="4" step="1" value="2">
+				<div class="speed-value" id="speed-value">1.0x</div>
+			</div>
+			<div class="ctrl-buttons" style="margin-top: 8px;">
+				<button class="ctrl-btn primary" type="button" id="btn-build">⚙ Build Steps</button>
+				<button class="ctrl-btn" type="button" id="btn-step">▶| Step</button>
+				<button class="ctrl-btn" type="button" id="btn-play">▶ Play</button>
+				<button class="ctrl-btn" type="button" id="btn-pause">⏸ Pause</button>
+				<button class="ctrl-btn danger" type="button" id="btn-reset">↺ Reset</button>
+			</div>
+			<div class="status-row" style="margin-top: 8px;">
+				<div class="status-pill status-idle" id="status-pill">Idle</div>
+				<div class="input-hint" id="step-counter">Step 0 / 0</div>
+			</div>
+			<div class="input-hint" id="status-msg"></div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Statistics</div>
+			<div class="counters-grid">
+				<div class="counter-box">
+					<div class="counter-val" id="cnt-steps">0</div>
+					<div class="counter-label">Steps</div>
+				</div>
+				<div class="counter-box">
+					<div class="counter-val" id="cnt-depth">0</div>
+					<div class="counter-label">Max depth</div>
+				</div>
+				<div class="counter-box">
+					<div class="counter-val" id="cnt-comp">0</div>
+					<div class="counter-label">Comparisons</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Closest Pair Result</div>
+			<div class="kv-list">
+				<div class="kv-item"><span>Pair</span><strong id="current-pair">—</strong></div>
+				<div class="kv-item"><span>Distance δ</span><strong id="current-dist">—</strong></div>
+				<div class="kv-item"><span>Active split x</span><strong id="current-split">—</strong></div>
+				<div class="kv-item"><span>Brute force ops (n(n−1)/2)</span><strong id="brute-ops">—</strong></div>
+				<div class="kv-item"><span>D&amp;C ops so far</span><strong id="dc-ops">—</strong></div>
+			</div>
+		</div>
+	</aside>
+
+	<section id="visualization">
+		<div class="legend-bar">
+			<span style="font-size:10px; color:var(--text-muted); font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-right:4px;">Legend:</span>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--accent); background: rgba(56,189,248,0.2);"></div>Left half</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--teal); background: rgba(45,212,191,0.2);"></div>Right half</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--purple); background: rgba(167,139,250,0.2);"></div>Strip (width 2δ)</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--amber); background: rgba(245,158,11,0.10); border-style: dashed;"></div>7-point window (2δ × δ)</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--amber); background: rgba(251,191,36,0.2);"></div>Active comparison</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--green); background: rgba(74,222,128,0.2);"></div>Current best pair</div>
+		</div>
+
+		<div class="panel">
+			<div class="panel-title">Point Set &amp; Active Region</div>
+			<svg class="points-canvas" id="points-canvas" viewBox="0 0 800 360" preserveAspectRatio="none"></svg>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel">
+				<div class="panel-title">Recursion Depth Trace</div>
+				<div class="recursion-tree" id="recursion-tree">
+					<div style="color:var(--text-muted)">Build steps to visualize recursion.</div>
+				</div>
+			</div>
+			<div class="panel">
+				<div class="panel-title">Pseudocode</div>
+				<ul class="pseudocode" id="cp-pseudocode">
+					<li data-line="1"><span class="pseudo-ln">1</span><span class="pseudo-code">closestPair(P_x, P_y):</span><div class="pseudo-tooltip">Recursive call. P_x is the subset sorted by x, P_y is the same subset sorted by y.</div></li>
+					<li data-line="2"><span class="pseudo-ln">2</span><span class="pseudo-code">&nbsp; if |P| ≤ 3: brute force</span><div class="pseudo-tooltip">Base case: small subsets are solved directly via all-pairs comparison.</div></li>
+					<li data-line="3"><span class="pseudo-ln">3</span><span class="pseudo-code">&nbsp; mid = ⌊|P|/2⌋; splitX = P_x[mid].x</span><div class="pseudo-tooltip">Divide the x-sorted list at the median to form left and right halves.</div></li>
+					<li data-line="4"><span class="pseudo-ln">4</span><span class="pseudo-code">&nbsp; (p_L, δ_L) = closestPair(L)</span><div class="pseudo-tooltip">Recurse on the left half.</div></li>
+					<li data-line="5"><span class="pseudo-ln">5</span><span class="pseudo-code">&nbsp; (p_R, δ_R) = closestPair(R)</span><div class="pseudo-tooltip">Recurse on the right half.</div></li>
+					<li data-line="6"><span class="pseudo-ln">6</span><span class="pseudo-code">&nbsp; δ = min(δ_L, δ_R)</span><div class="pseudo-tooltip">Take the smaller of the two recursive answers.</div></li>
+					<li data-line="7"><span class="pseudo-ln">7</span><span class="pseudo-code">&nbsp; strip = points with |x − splitX| &lt; δ</span><div class="pseudo-tooltip">Build the candidate strip around the split line.</div></li>
+					<li data-line="8"><span class="pseudo-ln">8</span><span class="pseudo-code">&nbsp; for each p in strip (y-order):</span><div class="pseudo-tooltip">Scan strip points in increasing y.</div></li>
+					<li data-line="9"><span class="pseudo-ln">9</span><span class="pseudo-code">&nbsp;&nbsp;&nbsp; for next ≤ 7 q: update δ if dist(p,q) &lt; δ</span><div class="pseudo-tooltip">7-point lemma: only the next ≤ 7 strip points can possibly beat δ.</div></li>
+					<li data-line="10"><span class="pseudo-ln">10</span><span class="pseudo-code">&nbsp; return (best pair, δ)</span><div class="pseudo-tooltip">Return the best across left, right, and strip results.</div></li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="explanation-panel" style="flex:1; min-width: 280px;">
+				<div class="panel-title">Step Explanation</div>
+				<div id="step-explanation">
+					<div class="exp-title">Waiting for steps</div>
+					<p>Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to walk through the algorithm.</p>
+				</div>
+			</div>
+			<div class="history-panel" style="flex:1; min-width: 280px;">
+				<div class="panel-title">Step History <span style="color:var(--text-muted);font-weight:normal;">(click to jump)</span></div>
+				<div class="history-scroll">
+					<table class="history-table">
+						<thead>
+							<tr><th>#</th><th>Depth</th><th>Action</th></tr>
+						</thead>
+						<tbody id="history-body"></tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+
+<script>
+const SPEED_MAP = [2000, 1000, 500, 250, 100];
+const SPEED_LABELS = ["0.25x", "0.5x", "1.0x", "2.0x", "4.0x"];
+
+const PRESETS = {
+	small: [
+		{ x: 1, y: 1 }, { x: 2, y: 3 }, { x: 4, y: 2 },
+		{ x: 6, y: 5 }, { x: 7, y: 1 }
+	],
+	grid: [
+		{ x: 1, y: 1 }, { x: 1, y: 4 }, { x: 1, y: 7 },
+		{ x: 4, y: 1 }, { x: 4, y: 4 }, { x: 4, y: 7 },
+		{ x: 7, y: 1 }, { x: 7, y: 4 }, { x: 7, y: 7 }
+	],
+	random: [
+		{ x: 1, y: 6 }, { x: 2, y: 2 }, { x: 3, y: 8 },
+		{ x: 5, y: 3 }, { x: 6, y: 7 }, { x: 8, y: 4 },
+		{ x: 9, y: 1 }, { x: 10, y: 6 }
+	],
+	clustered: [
+		{ x: 1, y: 1 }, { x: 2, y: 1 }, { x: 1, y: 2 },
+		{ x: 8, y: 8 }, { x: 9, y: 8 }, { x: 8, y: 9 },
+		{ x: 5, y: 5 }
+	]
+};
+
+const state = {
+	points: PRESETS.small.map((p) => ({ ...p })),
+	steps: [],
+	stepIndex: 0,
+	playing: false,
+	timer: null,
+	speedIndex: 2,
+	speedMs: SPEED_MAP[2],
+	finalResult: null
+};
+
+const els = {
+	presetSmall: document.getElementById("preset-small"),
+	presetGrid: document.getElementById("preset-grid"),
+	presetRandom: document.getElementById("preset-random"),
+	presetClustered: document.getElementById("preset-clustered"),
+	pointsInput: document.getElementById("points-input"),
+	applyPoints: document.getElementById("apply-points"),
+	speed: document.getElementById("speed"),
+	speedValue: document.getElementById("speed-value"),
+	build: document.getElementById("btn-build"),
+	play: document.getElementById("btn-play"),
+	pause: document.getElementById("btn-pause"),
+	step: document.getElementById("btn-step"),
+	reset: document.getElementById("btn-reset"),
+	statusPill: document.getElementById("status-pill"),
+	statusMsg: document.getElementById("status-msg"),
+	stepCounter: document.getElementById("step-counter"),
+	cntSteps: document.getElementById("cnt-steps"),
+	cntDepth: document.getElementById("cnt-depth"),
+	cntComp: document.getElementById("cnt-comp"),
+	pseudocode: document.getElementById("cp-pseudocode"),
+	stepExplanation: document.getElementById("step-explanation"),
+	historyBody: document.getElementById("history-body"),
+	canvas: document.getElementById("points-canvas"),
+	tree: document.getElementById("recursion-tree"),
+	currentPair: document.getElementById("current-pair"),
+	currentDist: document.getElementById("current-dist"),
+	currentSplit: document.getElementById("current-split"),
+	bruteOps: document.getElementById("brute-ops"),
+	dcOps: document.getElementById("dc-ops")
+};
+
+function toggleNotes() {
+	const body = document.getElementById("notes-body");
+	const btn = document.getElementById("notes-toggle-btn");
+	if (!body || !btn) return;
+	const open = body.classList.toggle("open");
+	body.style.display = open ? "block" : "none";
+	btn.textContent = open ? "Collapse ▲" : "Expand ▼";
+}
+
+function setStatus(type, message) {
+	els.statusPill.className = "status-pill";
+	const map = { idle: "status-idle", ready: "status-ready", playing: "status-playing", paused: "status-paused", done: "status-done", error: "status-error" };
+	const labels = { idle: "Idle", ready: "Ready", playing: "Playing", paused: "Paused", done: "Done", error: "Error" };
+	els.statusPill.classList.add(map[type] || "status-ready");
+	els.statusPill.textContent = labels[type] || "Ready";
+	els.statusMsg.textContent = message || "";
+}
+
+function setSpeed(index) {
+	state.speedIndex = index;
+	state.speedMs = SPEED_MAP[index];
+	els.speedValue.textContent = SPEED_LABELS[index];
+}
+
+function parsePoints(text) {
+	const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+	const pts = [];
+	for (const line of lines) {
+		const parts = line.split(/\s*,\s*/);
+		if (parts.length !== 2) return null;
+		const x = Number(parts[0]);
+		const y = Number(parts[1]);
+		if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+		pts.push({ x, y });
+	}
+	return pts;
+}
+
+function dist(a, b) {
+	return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function buildSteps(points) {
+	if (!points || points.length < 2) return { steps: [], result: null };
+	const indexed = points.map((p, i) => ({ ...p, idx: i }));
+	const Px = [...indexed].sort((a, b) => a.x - b.x || a.y - b.y);
+	const Py = [...indexed].sort((a, b) => a.y - b.y || a.x - b.x);
+	const steps = [];
+
+	steps.push({
+		type: "init",
+		line: 1,
+		depth: 0,
+		label: `Sort ${points.length} points by x and y`,
+		desc: `Initial sort costs O(n log n). The same sorted views are reused throughout the recursion.`
+	});
+
+	function bruteForce(P, depth) {
+		let best = null;
+		let bestD = Infinity;
+		const subset = P.map((p) => p.idx);
+		if (P.length < 2) {
+			steps.push({
+				type: "base_done",
+				line: 2,
+				depth,
+				subset,
+				pair: null,
+				dist: Infinity,
+				label: `Base: ${P.length} pt — no pair`,
+				desc: `Single point — distance returned as ∞.`
+			});
+			return { pair: null, delta: Infinity };
+		}
+		for (let i = 0; i < P.length; i++) {
+			for (let j = i + 1; j < P.length; j++) {
+				const d = dist(P[i], P[j]);
+				steps.push({
+					type: "base_compare",
+					line: 2,
+					depth,
+					subset,
+					activePair: [P[i].idx, P[j].idx],
+					compareDist: d,
+					pair: best ? [best[0].idx, best[1].idx] : null,
+					dist: bestD === Infinity ? null : bestD,
+					label: `Base compare (depth ${depth}): d = ${d.toFixed(3)}`,
+					desc: `Brute compare (${P[i].x},${P[i].y}) — (${P[j].x},${P[j].y}): distance = ${d.toFixed(3)}.`
+				});
+				if (d < bestD) {
+					bestD = d;
+					best = [P[i], P[j]];
+				}
+			}
+		}
+		steps.push({
+			type: "base_done",
+			line: 2,
+			depth,
+			subset,
+			pair: best ? [best[0].idx, best[1].idx] : null,
+			dist: bestD,
+			label: `Base done: δ = ${bestD === Infinity ? "∞" : bestD.toFixed(3)}`,
+			desc: `Base case complete; δ = ${bestD === Infinity ? "∞" : bestD.toFixed(3)}.`
+		});
+		return { pair: best, delta: bestD };
+	}
+
+	function recurse(Px, Py, depth) {
+		const subset = Px.map((p) => p.idx);
+		steps.push({
+			type: "enter",
+			line: 1,
+			depth,
+			subset,
+			label: `Enter recursion: ${Px.length} pts at depth ${depth}`,
+			desc: `Recursive call on ${Px.length} points at depth ${depth}.`
+		});
+
+		if (Px.length <= 3) {
+			return bruteForce(Px, depth);
+		}
+
+		const mid = Math.floor(Px.length / 2);
+		const splitX = Px[mid].x;
+		const Lx = Px.slice(0, mid);
+		const Rx = Px.slice(mid);
+		const LxIds = new Set(Lx.map((p) => p.idx));
+		const Ly = Py.filter((p) => LxIds.has(p.idx));
+		const Ry = Py.filter((p) => !LxIds.has(p.idx));
+
+		steps.push({
+			type: "split",
+			line: 3,
+			depth,
+			splitX,
+			subset,
+			leftSubset: Lx.map((p) => p.idx),
+			rightSubset: Rx.map((p) => p.idx),
+			label: `Split at x = ${splitX}: ${Lx.length}L + ${Rx.length}R`,
+			desc: `Partition around the median x = ${splitX}. ${Lx.length} points on the left, ${Rx.length} on the right.`
+		});
+
+		const L = recurse(Lx, Ly, depth + 1);
+
+		steps.push({
+			type: "after_left",
+			line: 4,
+			depth,
+			subset,
+			splitX,
+			leftSubset: Lx.map((p) => p.idx),
+			rightSubset: Rx.map((p) => p.idx),
+			pair: L.pair ? [L.pair[0].idx, L.pair[1].idx] : null,
+			dist: L.delta,
+			label: `Left returned δ_L = ${L.delta === Infinity ? "∞" : L.delta.toFixed(3)}`,
+			desc: `Left half closest distance: δ_L = ${L.delta === Infinity ? "∞" : L.delta.toFixed(3)}.`
+		});
+
+		const R = recurse(Rx, Ry, depth + 1);
+
+		steps.push({
+			type: "after_right",
+			line: 5,
+			depth,
+			subset,
+			splitX,
+			leftSubset: Lx.map((p) => p.idx),
+			rightSubset: Rx.map((p) => p.idx),
+			pair: R.pair ? [R.pair[0].idx, R.pair[1].idx] : null,
+			dist: R.delta,
+			label: `Right returned δ_R = ${R.delta === Infinity ? "∞" : R.delta.toFixed(3)}`,
+			desc: `Right half closest distance: δ_R = ${R.delta === Infinity ? "∞" : R.delta.toFixed(3)}.`
+		});
+
+		let delta = Math.min(L.delta, R.delta);
+		let bestPair = L.delta <= R.delta ? L.pair : R.pair;
+
+		steps.push({
+			type: "combine",
+			line: 6,
+			depth,
+			subset,
+			splitX,
+			pair: bestPair ? [bestPair[0].idx, bestPair[1].idx] : null,
+			dist: delta,
+			label: `δ = min(δ_L, δ_R) = ${delta === Infinity ? "∞" : delta.toFixed(3)}`,
+			desc: `Pick the smaller of the two halves. δ = ${delta === Infinity ? "∞" : delta.toFixed(3)} so far.`
+		});
+
+		if (delta === Infinity) {
+			steps.push({
+				type: "exit",
+				line: 10,
+				depth,
+				subset,
+				pair: null,
+				dist: Infinity,
+				label: `Return δ = ∞ (${Px.length} pts)`,
+				desc: `No valid pair found in either half.`
+			});
+			return { pair: null, delta: Infinity };
+		}
+
+		const strip = Py.filter((p) => Math.abs(p.x - splitX) < delta);
+
+		steps.push({
+			type: "strip_build",
+			line: 7,
+			depth,
+			subset,
+			splitX,
+			dist: delta,
+			stripSubset: strip.map((p) => p.idx),
+			pair: bestPair ? [bestPair[0].idx, bestPair[1].idx] : null,
+			label: `Strip width 2δ ≈ ${(2 * delta).toFixed(3)}: ${strip.length} pts`,
+			desc: `Collect points within horizontal distance δ = ${delta.toFixed(3)} of the split. Strip has ${strip.length} points (sorted by y).`
+		});
+
+		for (let i = 0; i < strip.length; i++) {
+			for (let j = i + 1; j < Math.min(i + 8, strip.length); j++) {
+				if (strip[j].y - strip[i].y >= delta) break;
+				const d = dist(strip[i], strip[j]);
+				steps.push({
+					type: "strip_scan",
+					line: 9,
+					depth,
+					subset,
+					splitX,
+					dist: delta,
+					stripSubset: strip.map((p) => p.idx),
+					activePair: [strip[i].idx, strip[j].idx],
+					anchorIdx: strip[i].idx,
+					windowYLow: strip[i].y,
+					windowYHigh: strip[i].y + delta,
+					pair: bestPair ? [bestPair[0].idx, bestPair[1].idx] : null,
+					compareDist: d,
+					label: `Strip compare: d = ${d.toFixed(3)} vs δ = ${delta.toFixed(3)}`,
+					desc: `Check (${strip[i].x},${strip[i].y}) vs (${strip[j].x},${strip[j].y}): distance ${d.toFixed(3)}. ${d < delta ? "Improves δ." : "No improvement."} 7-point window: y ∈ [${strip[i].y}, ${(strip[i].y + delta).toFixed(3)}) within strip.`
+				});
+				if (d < delta) {
+					delta = d;
+					bestPair = [strip[i], strip[j]];
+					steps.push({
+						type: "strip_update",
+						line: 9,
+						depth,
+						subset,
+						splitX,
+						dist: delta,
+						stripSubset: strip.map((p) => p.idx),
+						anchorIdx: strip[i].idx,
+						windowYLow: strip[i].y,
+						windowYHigh: strip[i].y + delta,
+						pair: [strip[i].idx, strip[j].idx],
+						label: `Update δ = ${delta.toFixed(3)}`,
+						desc: `New best cross-pair found in strip; δ shrinks to ${delta.toFixed(3)}.`
+					});
+				}
+			}
+		}
+
+		steps.push({
+			type: "exit",
+			line: 10,
+			depth,
+			subset,
+			pair: bestPair ? [bestPair[0].idx, bestPair[1].idx] : null,
+			dist: delta,
+			label: `Return δ = ${delta.toFixed(3)} (${Px.length} pts)`,
+			desc: `Return the best of left, right, and strip results: δ = ${delta.toFixed(3)}.`
+		});
+
+		return { pair: bestPair, delta };
+	}
+
+	const result = recurse(Px, Py, 0);
+	steps.push({
+		type: "final",
+		line: 10,
+		depth: 0,
+		pair: result.pair ? [result.pair[0].idx, result.pair[1].idx] : null,
+		dist: result.delta,
+		label: `Final closest pair: δ = ${result.delta === Infinity ? "∞" : result.delta.toFixed(3)}`,
+		desc: `Algorithm complete. Closest distance is ${result.delta === Infinity ? "∞" : result.delta.toFixed(3)}.`
+	});
+
+	return { steps, result };
+}
+
+function renderPoints(step) {
+	if (!els.canvas) return;
+	const pts = state.points;
+	if (pts.length === 0) {
+		els.canvas.innerHTML = "";
+		return;
+	}
+	const xs = pts.map((p) => p.x);
+	const ys = pts.map((p) => p.y);
+	const minX = Math.min(...xs);
+	const maxX = Math.max(...xs);
+	const minY = Math.min(...ys);
+	const maxY = Math.max(...ys);
+	const pad = 30;
+	const W = 800;
+	const H = 360;
+	const rangeX = (maxX - minX) || 1;
+	const rangeY = (maxY - minY) || 1;
+	const sx = (x) => pad + ((x - minX) / rangeX) * (W - pad * 2);
+	const sy = (y) => H - pad - ((y - minY) / rangeY) * (H - pad * 2);
+
+	const subset = step && step.subset ? new Set(step.subset) : null;
+	const stripSet = step && step.stripSubset ? new Set(step.stripSubset) : null;
+	const leftSet = step && step.leftSubset ? new Set(step.leftSubset) : null;
+	const rightSet = step && step.rightSubset ? new Set(step.rightSubset) : null;
+	const activePair = step && step.activePair ? step.activePair : null;
+	const bestPair = step && step.pair ? step.pair : null;
+
+	let svg = "";
+
+	// Grid
+	for (let i = 0; i <= 10; i++) {
+		const x = pad + ((W - pad * 2) * i) / 10;
+		svg += `<line x1="${x}" y1="${pad}" x2="${x}" y2="${H - pad}" stroke="rgba(45,55,72,0.4)" stroke-width="0.5" />`;
+	}
+	for (let i = 0; i <= 6; i++) {
+		const y = pad + ((H - pad * 2) * i) / 6;
+		svg += `<line x1="${pad}" y1="${y}" x2="${W - pad}" y2="${y}" stroke="rgba(45,55,72,0.4)" stroke-width="0.5" />`;
+	}
+
+	// Strip rectangle
+	if (step && Number.isFinite(step.splitX) && Number.isFinite(step.dist) && step.dist !== Infinity && (step.type === "strip_build" || step.type === "strip_scan" || step.type === "strip_update")) {
+		const left = sx(step.splitX - step.dist);
+		const right = sx(step.splitX + step.dist);
+		svg += `<rect x="${left}" y="${pad - 5}" width="${right - left}" height="${H - pad * 2 + 10}" fill="rgba(167,139,250,0.10)" stroke="rgba(167,139,250,0.45)" stroke-width="1" stroke-dasharray="4,3" />`;
+	}
+
+	// 7-point window: 2δ × δ box around the anchor point during strip scan
+	if (step && (step.type === "strip_scan" || step.type === "strip_update") &&
+		Number.isFinite(step.windowYLow) && Number.isFinite(step.windowYHigh) &&
+		Number.isFinite(step.splitX) && Number.isFinite(step.dist) && step.dist !== Infinity) {
+		const wxLeft = sx(step.splitX - step.dist);
+		const wxRight = sx(step.splitX + step.dist);
+		const wyTop = sy(step.windowYHigh);
+		const wyBot = sy(step.windowYLow);
+		const yMin = Math.min(wyTop, wyBot);
+		const yMax = Math.max(wyTop, wyBot);
+		svg += `<rect x="${wxLeft}" y="${yMin}" width="${wxRight - wxLeft}" height="${yMax - yMin}" fill="rgba(245,158,11,0.10)" stroke="rgba(245,158,11,0.7)" stroke-width="1.5" stroke-dasharray="5,3" />`;
+		svg += `<text x="${wxRight - 6}" y="${yMin + 14}" fill="var(--amber)" font-size="10" font-weight="700" text-anchor="end">7-point window</text>`;
+		svg += `<text x="${wxRight - 6}" y="${yMin + 26}" fill="var(--amber)" font-size="9" text-anchor="end" opacity="0.85">2δ × δ</text>`;
+	}
+
+	// Split line
+	if (step && Number.isFinite(step.splitX)) {
+		const x = sx(step.splitX);
+		svg += `<line x1="${x}" y1="${pad - 8}" x2="${x}" y2="${H - pad + 8}" stroke="var(--purple)" stroke-width="2" stroke-dasharray="6,4" />`;
+		svg += `<text x="${x}" y="${pad - 12}" fill="var(--purple)" font-size="10" font-weight="700" text-anchor="middle">x = ${step.splitX}</text>`;
+	}
+
+	// Best pair line
+	if (bestPair && bestPair.length === 2 && Number.isFinite(step.dist) && step.dist !== Infinity) {
+		const a = pts[bestPair[0]];
+		const b = pts[bestPair[1]];
+		if (a && b) {
+			svg += `<line x1="${sx(a.x)}" y1="${sy(a.y)}" x2="${sx(b.x)}" y2="${sy(b.y)}" stroke="var(--green)" stroke-width="2.5" opacity="0.85" />`;
+		}
+	}
+
+	// Active comparison line
+	if (activePair && activePair.length === 2) {
+		const a = pts[activePair[0]];
+		const b = pts[activePair[1]];
+		if (a && b) {
+			svg += `<line x1="${sx(a.x)}" y1="${sy(a.y)}" x2="${sx(b.x)}" y2="${sy(b.y)}" stroke="var(--amber)" stroke-width="2" stroke-dasharray="3,3" />`;
+		}
+	}
+
+	// Points
+	pts.forEach((p, idx) => {
+		const cx = sx(p.x);
+		const cy = sy(p.y);
+		const inSubset = !subset || subset.size === 0 || subset.has(idx);
+		const inStrip = stripSet && stripSet.has(idx);
+		const inLeft = leftSet && leftSet.has(idx);
+		const inRight = rightSet && rightSet.has(idx);
+		const inActive = activePair && activePair.includes(idx);
+		const inBest = bestPair && bestPair.includes(idx);
+
+		let fill = "var(--text-muted)";
+		let opacity = 0.35;
+		let r = 4;
+		if (inSubset) {
+			fill = "var(--accent)";
+			opacity = 1;
+			r = 5;
+		}
+		if (inLeft) { fill = "var(--accent)"; opacity = 1; r = 5; }
+		if (inRight) { fill = "var(--teal)"; opacity = 1; r = 5; }
+		if (inStrip) { fill = "var(--purple)"; opacity = 1; r = 5.5; }
+		if (inBest) { fill = "var(--green)"; opacity = 1; r = 7; }
+		if (inActive) { fill = "var(--amber)"; opacity = 1; r = 8; }
+
+		svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" opacity="${opacity}" stroke="rgba(0,0,0,0.4)" stroke-width="0.5" />`;
+		if (inSubset || inActive || inBest) {
+			svg += `<text x="${cx + 9}" y="${cy - 9}" fill="var(--text-dim)" font-size="10">(${p.x},${p.y})</text>`;
+		}
+	});
+
+	els.canvas.innerHTML = svg;
+}
+
+function renderRecursionTree(step) {
+	if (!els.tree) return;
+	if (state.steps.length === 0) {
+		els.tree.innerHTML = `<div style="color:var(--text-muted)">Build steps to visualize recursion.</div>`;
+		return;
+	}
+	const upto = state.steps.slice(0, state.stepIndex + 1);
+	const subsetKey = (s) => (s.subset || []).join(",");
+	const enters = upto.filter((s) => s.type === "enter");
+	const completed = new Set(upto.filter((s) => s.type === "exit" || s.type === "base_done").map((s) => `${s.depth}:${subsetKey(s)}`));
+	const activeKey = step ? `${step.depth}:${subsetKey(step)}` : null;
+
+	const rowsByDepth = {};
+	enters.forEach((s) => {
+		const d = s.depth || 0;
+		if (!rowsByDepth[d]) rowsByDepth[d] = [];
+		const key = `${d}:${subsetKey(s)}`;
+		rowsByDepth[d].push({
+			subset: s.subset || [],
+			done: completed.has(key),
+			active: activeKey === key
+		});
+	});
+
+	const maxDepth = Math.max(0, ...Object.keys(rowsByDepth).map(Number));
+	let html = "";
+	for (let d = 0; d <= maxDepth; d++) {
+		const row = rowsByDepth[d] || [];
+		html += `<div class="tree-row"><span class="tree-row-label">depth ${d}</span>`;
+		row.forEach((node) => {
+			const cls = node.active ? "active" : (node.done ? "done" : "");
+			const labels = node.subset.map((i) => state.points[i] ? `${state.points[i].x},${state.points[i].y}` : i).join(" • ");
+			html += `<span class="tree-node ${cls}">{${labels}}</span>`;
+		});
+		html += `</div>`;
+	}
+	els.tree.innerHTML = html;
+}
+
+function updatePseudocode(step) {
+	if (!els.pseudocode) return;
+	els.pseudocode.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
+	if (!step || !step.line) return;
+	const active = els.pseudocode.querySelector(`li[data-line="${step.line}"]`);
+	if (active) active.classList.add("active");
+}
+
+function updateCounters() {
+	const upto = state.steps.slice(0, Math.max(state.stepIndex + 1, 0));
+	els.cntSteps.textContent = state.steps.length ? String(state.stepIndex + 1) : "0";
+	const maxDepth = upto.length ? Math.max(0, ...upto.map((s) => s.depth || 0)) : 0;
+	els.cntDepth.textContent = String(maxDepth);
+	const comparisons = upto.filter((s) => s.type === "base_compare" || s.type === "strip_scan").length;
+	els.cntComp.textContent = String(comparisons);
+	const n = state.points.length;
+	els.bruteOps.textContent = n >= 2 ? String((n * (n - 1)) / 2) : "—";
+	els.dcOps.textContent = String(comparisons);
+}
+
+function renderHistory() {
+	els.historyBody.innerHTML = "";
+	if (state.steps.length === 0) return;
+	const start = Math.max(0, state.stepIndex - 49);
+	for (let idx = start; idx <= state.stepIndex; idx++) {
+		const step = state.steps[idx];
+		const row = document.createElement("tr");
+		row.dataset.index = String(idx);
+		if (idx === state.stepIndex) row.classList.add("history-active");
+		row.innerHTML = `<td>${idx + 1}</td><td>${step.depth ?? "—"}</td><td>${step.label || step.type}</td>`;
+		els.historyBody.appendChild(row);
+	}
+}
+
+function formatStepExplanation(step) {
+	if (!step) {
+		return `<div class="exp-title">Waiting for steps</div><p>Build steps to see the algorithm flow.</p>`;
+	}
+	const distLine = Number.isFinite(step.dist) && step.dist !== Infinity ? `<div class="exp-formula">δ = ${step.dist.toFixed(3)}</div>` : "";
+	const compareLine = Number.isFinite(step.compareDist) ? `<div class="exp-formula">d(active pair) = ${step.compareDist.toFixed(3)}</div>` : "";
+	return `<div class="exp-title">${step.label || step.type}</div><p>${step.desc || ""}</p>${distLine}${compareLine}`;
+}
+
+function renderStep() {
+	const step = state.steps[state.stepIndex];
+	renderPoints(step);
+	renderRecursionTree(step);
+	updatePseudocode(step);
+	updateCounters();
+	renderHistory();
+	els.stepExplanation.innerHTML = formatStepExplanation(step);
+	els.stepCounter.textContent = `Step ${state.steps.length ? state.stepIndex + 1 : 0} / ${state.steps.length}`;
+
+	if (step && step.pair && step.pair.length === 2) {
+		const a = state.points[step.pair[0]];
+		const b = state.points[step.pair[1]];
+		els.currentPair.textContent = a && b ? `(${a.x},${a.y}) — (${b.x},${b.y})` : "—";
+	} else {
+		els.currentPair.textContent = "—";
+	}
+	if (step && Number.isFinite(step.dist) && step.dist !== Infinity) {
+		els.currentDist.textContent = step.dist.toFixed(3);
+	} else {
+		els.currentDist.textContent = "—";
+	}
+	els.currentSplit.textContent = step && Number.isFinite(step.splitX) ? String(step.splitX) : "—";
+}
+
+function buildAndRender() {
+	const pts = parsePoints(els.pointsInput.value);
+	if (!pts || pts.length < 2) {
+		setStatus("error", "Enter at least two valid points (one x,y per line).");
+		state.steps = [];
+		state.stepIndex = 0;
+		state.points = pts || [];
+		state.finalResult = null;
+		renderStep();
+		return;
+	}
+	state.points = pts;
+	const built = buildSteps(pts);
+	state.steps = built.steps;
+	state.finalResult = built.result;
+	state.stepIndex = 0;
+	setStatus("ready", `Built ${state.steps.length} steps for ${pts.length} points.`);
+	renderStep();
+}
+
+function stopPlayback() {
+	state.playing = false;
+	if (state.timer) {
+		clearTimeout(state.timer);
+		state.timer = null;
+	}
+	if (els.play) els.play.disabled = false;
+	if (els.pause) els.pause.disabled = true;
+}
+
+function stepForward() {
+	if (state.steps.length === 0) return;
+	if (state.stepIndex < state.steps.length - 1) {
+		state.stepIndex += 1;
+		renderStep();
+	} else {
+		stopPlayback();
+		setStatus("done", "Reached final step.");
+	}
+}
+
+function playLoop() {
+	if (!state.playing) return;
+	stepForward();
+	if (state.playing && state.stepIndex < state.steps.length - 1) {
+		state.timer = setTimeout(playLoop, state.speedMs);
+	} else if (state.stepIndex >= state.steps.length - 1) {
+		stopPlayback();
+		setStatus("done", "Animation complete.");
+	}
+}
+
+function startPlay() {
+	if (state.steps.length === 0 || state.playing) return;
+	if (state.stepIndex >= state.steps.length - 1) {
+		state.stepIndex = 0;
+		renderStep();
+	}
+	state.playing = true;
+	if (els.play) els.play.disabled = true;
+	if (els.pause) els.pause.disabled = false;
+	setStatus("playing", "Animating recursion.");
+	state.timer = setTimeout(playLoop, state.speedMs);
+}
+
+function pausePlay() {
+	if (!state.playing) return;
+	stopPlayback();
+	setStatus("paused", "Paused.");
+}
+
+function resetSteps() {
+	stopPlayback();
+	state.stepIndex = 0;
+	renderStep();
+	setStatus("ready", "Reset to start.");
+}
+
+function applyPreset(name) {
+	const pts = PRESETS[name];
+	state.points = pts.map((p) => ({ ...p }));
+	els.pointsInput.value = pts.map((p) => `${p.x},${p.y}`).join("\n");
+	buildAndRender();
+}
+
+function attachEvents() {
+	els.presetSmall.addEventListener("click", () => applyPreset("small"));
+	els.presetGrid.addEventListener("click", () => applyPreset("grid"));
+	els.presetRandom.addEventListener("click", () => applyPreset("random"));
+	els.presetClustered.addEventListener("click", () => applyPreset("clustered"));
+	els.applyPoints.addEventListener("click", buildAndRender);
+	els.build.addEventListener("click", buildAndRender);
+	els.play.addEventListener("click", startPlay);
+	els.pause.addEventListener("click", pausePlay);
+	els.step.addEventListener("click", () => {
+		stopPlayback();
+		stepForward();
+		setStatus("ready", "Stepped forward.");
+	});
+	els.reset.addEventListener("click", resetSteps);
+	els.speed.addEventListener("input", () => setSpeed(Number(els.speed.value)));
+	els.historyBody.addEventListener("click", (event) => {
+		const row = event.target.closest("tr");
+		if (!row) return;
+		const idx = Number(row.dataset.index);
+		if (!Number.isNaN(idx)) {
+			stopPlayback();
+			state.stepIndex = idx;
+			renderStep();
+			setStatus("ready", "Jumped to step.");
+		}
+	});
+}
+
+function init() {
+	attachEvents();
+	setStatus("idle", "Load a preset or enter custom points.");
+	setSpeed(state.speedIndex);
+	if (els.pause) els.pause.disabled = true;
+	buildAndRender();
+}
+
+init();
+</script>
+</body>
+</html>
