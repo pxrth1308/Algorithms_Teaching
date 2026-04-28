@@ -134,7 +134,7 @@ header .meta {
 	opacity: 0.55;
 	pointer-events: none;
 }
-.hero-inner { position: relative; max-width: 1200px; margin: 0 auto; }
+.hero-inner { position: relative; max-width: 1200px; margin: 0 auto; text-align: center; }
 .hero h2 {
 	font-family: "Space Grotesk", sans-serif;
 	font-size: clamp(28px, 4.2vw, 44px);
@@ -153,13 +153,14 @@ header .meta {
 	font-size: 16px;
 	max-width: 720px;
 	line-height: 1.65;
-	margin-bottom: 24px;
+	margin: 0 auto 24px;
 }
 .hero .stats {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 	gap: 12px;
 	max-width: 720px;
+	margin: 0 auto;
 }
 .stat {
 	background: var(--panel);
@@ -625,6 +626,23 @@ footer .sw { width: 12px; height: 12px; border-radius: 3px; }
 	</div>
 </header>
 
+<!-- ─────────────── CONTROLS ─────────────── -->
+<div class="controls-bar">
+	<div class="search-wrap">
+		<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+		<input id="search" type="text" placeholder="Search lessons, tags, topics… (press / to focus)" autocomplete="off">
+	</div>
+	<div class="tag-chips" id="chips">
+		<button class="chip active" data-tag="all">All</button>
+		<button class="chip" data-tag="number-theory">Number Theory</button>
+		<button class="chip" data-tag="geometry">Geometry</button>
+		<button class="chip" data-tag="approximation">Approximation</button>
+		<button class="chip" data-tag="signal">Signal</button>
+		<button class="chip" data-tag="dnc">Divide &amp; Conquer</button>
+		<button class="chip" data-tag="dp">Dynamic Programming</button>
+	</div>
+</div>
+
 <!-- ─────────────── HERO ─────────────── -->
 <section class="hero">
 	<canvas id="hero-canvas" aria-hidden="true"></canvas>
@@ -644,23 +662,6 @@ footer .sw { width: 12px; height: 12px; border-radius: 3px; }
 		</div>
 	</div>
 </section>
-
-<!-- ─────────────── CONTROLS ─────────────── -->
-<div class="controls-bar">
-	<div class="search-wrap">
-		<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-		<input id="search" type="text" placeholder="Search lessons, tags, topics… (press / to focus)" autocomplete="off">
-	</div>
-	<div class="tag-chips" id="chips">
-		<button class="chip active" data-tag="all">All</button>
-		<button class="chip" data-tag="number-theory">Number Theory</button>
-		<button class="chip" data-tag="geometry">Geometry</button>
-		<button class="chip" data-tag="approximation">Approximation</button>
-		<button class="chip" data-tag="signal">Signal</button>
-		<button class="chip" data-tag="dnc">Divide &amp; Conquer</button>
-		<button class="chip" data-tag="dp">Dynamic Programming</button>
-	</div>
-</div>
 
 <!-- ─────────────── LESSON CARDS ─────────────── -->
 <main class="lessons" id="lesson-grid"></main>
@@ -751,8 +752,20 @@ footer .sw { width: 12px; height: 12px; border-radius: 3px; }
    ────────────────────────────────────────── */
 const LESSONS = [
 	{
-		id: "crt",
+		id: "fft",
 		num: "01",
+		file: "dft_fft_circuits.html",
+		title: "DFT & FFT Circuits",
+		subtitle: "From the DFT matrix to butterfly circuits — Cooley-Tukey demystified.",
+		emoji: "🌊",
+		tags: ["signal", "dnc"],
+		tagColors: { "signal": "purple", "dnc": "purple" },
+		complexity: "O(n log n)",
+		preview: "preview-fft"
+	},
+	{
+		id: "crt",
+		num: "02",
 		file: "ChineseRemainder_RSA.html",
 		title: "Chinese Remainder Theorem & RSA-CRT",
 		subtitle: "From simultaneous congruences to a 4× speedup of RSA decryption.",
@@ -764,7 +777,7 @@ const LESSONS = [
 	},
 	{
 		id: "closest",
-		num: "02",
+		num: "03",
 		file: "ClosestPairPoints.html",
 		title: "Closest Pair of Points — Divide & Conquer",
 		subtitle: "The classic O(n log n) sweep, with the 7-point strip lemma made visible.",
@@ -776,7 +789,7 @@ const LESSONS = [
 	},
 	{
 		id: "fptas",
-		num: "03",
+		num: "04",
 		file: "FPTAS.html",
 		title: "FPTAS for 0/1 Knapsack",
 		subtitle: "Trade a tunable ε for polynomial running time on an NP-hard problem.",
@@ -785,18 +798,6 @@ const LESSONS = [
 		tagColors: { "approximation": "amber", "dp": "cyan" },
 		complexity: "O(n³ / ε)",
 		preview: "preview-fptas"
-	},
-	{
-		id: "fft",
-		num: "04",
-		file: "dft_fft_circuits.html",
-		title: "DFT & FFT Circuits",
-		subtitle: "From the DFT matrix to butterfly circuits — Cooley-Tukey demystified.",
-		emoji: "🌊",
-		tags: ["signal", "dnc"],
-		tagColors: { "signal": "purple", "dnc": "purple" },
-		complexity: "O(n log n)",
-		preview: "preview-fft"
 	},
 ];
 
