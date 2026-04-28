@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discrete Fourier Transform &amp; FFT Circuits — BSD 404</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+	--bg: #0a0e1a;
+	--panel: #111827;
+	--panel2: #1a2236;
+	--panel3: #0f172a;
+	--border: #2d3748;
+	--border2: #374151;
+	--text: #e2e8f0;
+	--text-dim: #94a3b8;
+	--text-muted: #64748b;
+	--accent: #38bdf8;
+	--accent2: #0ea5e9;
+	--green: #4ade80;
+	--green2: #22c55e;
+	--amber: #fbbf24;
+	--amber2: #f59e0b;
+	--red: #f87171;
+	--red2: #ef4444;
+	--purple: #a78bfa;
+	--teal: #2dd4bf;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+	font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+	background: var(--bg);
+	color: var(--text);
+	min-height: 100vh;
+	font-size: 13px;
+}
+
+a { color: var(--accent); }
+
+#main-tool, #visualization, #lecture-notes { background: var(--bg); }
+
+header {
+	background: linear-gradient(135deg, #0f172a 0%, #1a2236 100%);
+	border-bottom: 1px solid var(--border);
+	padding: 14px 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+header h1 { font-size: 17px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; }
+header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
+.badge {
+	display: inline-block; padding: 2px 8px; border-radius: 9999px;
+	font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+	background: rgba(56,189,248,0.15); color: var(--accent);
+	border: 1px solid rgba(56,189,248,0.3); margin-left: 8px;
+}
+
+#lecture-notes { background: var(--bg); border-bottom: 1px solid var(--border); }
+.notes-header {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 10px 24px; cursor: pointer; user-select: none; gap: 12px;
+}
+.notes-header:hover { background: rgba(255,255,255,0.02); }
+.notes-header h2 { font-size: 13px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.3px; }
+.notes-toggle { font-size: 11px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 2px 8px; border-radius: 4px; }
+.notes-toggle:hover { background: rgba(56,189,248,0.1); }
+.notes-body { padding: 0 24px 20px; display: none; }
+.notes-body.open { display: block; }
+
+.algo-tabs {
+	display: flex; gap: 8px; padding: 10px 24px;
+	background: var(--panel3); border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.algo-tab {
+	padding: 7px 12px; border-radius: 9999px;
+	border: 1px solid var(--border2); background: var(--panel2);
+	color: var(--text-dim); font-size: 11px; font-weight: 700;
+	letter-spacing: 0.4px; cursor: pointer; transition: all 0.15s;
+}
+.algo-tab:hover { background: rgba(56,189,248,0.08); color: var(--text); }
+.algo-tab.active { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.45); color: var(--accent); }
+
+.roadmap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.roadmap a {
+	padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
+	background: rgba(56,189,248,0.1); color: var(--accent);
+	border: 1px solid rgba(56,189,248,0.2); text-decoration: none; white-space: nowrap;
+}
+.roadmap a:hover { background: rgba(56,189,248,0.2); }
+
+.notes-section { margin: 20px 0; }
+.notes-section h3 {
+	font-size: 14px; font-weight: 600; color: var(--accent);
+	margin-bottom: 8px; border-left: 3px solid var(--accent); padding-left: 10px;
+}
+.notes-section p { color: var(--text-dim); line-height: 1.65; margin-bottom: 8px; }
+.notes-section ul { margin: 8px 0 8px 20px; color: var(--text-dim); line-height: 1.85; }
+.notes-section li { margin-bottom: 4px; }
+.notes-section code {
+	background: var(--panel2); color: var(--teal);
+	padding: 1px 5px; border-radius: 3px;
+	font-family: "Consolas", monospace; font-size: 11px;
+}
+
+.key-concept {
+	background: rgba(56,189,248,0.06);
+	border: 1px solid rgba(56,189,248,0.2);
+	border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+}
+.key-concept .kc-title {
+	font-size: 11px; font-weight: 700; color: var(--accent);
+	letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;
+}
+.key-concept p { color: var(--text-dim); margin: 0; font-size: 12px; line-height: 1.65; }
+
+.highlight-box {
+	background: rgba(251,191,36,0.07);
+	border: 1px solid rgba(251,191,36,0.25);
+	border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+}
+.highlight-box p { color: var(--text-dim); margin: 0; font-size: 12px; line-height: 1.65; }
+.highlight-box strong { color: var(--amber); }
+
+.worked-example {
+	background: var(--panel2);
+	border: 1px solid var(--border);
+	border-radius: 6px; padding: 14px; margin: 10px 0;
+	font-family: "Consolas", monospace; font-size: 11px;
+	color: var(--text-dim); white-space: pre;
+	overflow-x: auto; line-height: 1.55;
+}
+
+.complexity-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+.complexity-table th, .complexity-table td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.complexity-table th { background: var(--panel2); color: var(--accent); font-weight: 600; }
+.complexity-table td { color: var(--text-dim); }
+.complexity-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.formula {
+	font-family: "Consolas", monospace; font-size: 13px;
+	color: var(--teal); background: var(--panel3);
+	border: 1px dashed var(--border2);
+	padding: 8px 10px; border-radius: 5px; margin: 6px 0;
+}
+
+#main-tool { display: flex; min-height: calc(100vh - 100px); gap: 0; }
+
+#controls {
+	width: 420px; min-width: 360px;
+	background: var(--panel); border-right: 1px solid var(--border);
+	padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
+}
+.ctrl-section {
+	background: var(--panel2); border: 1px solid var(--border);
+	border-radius: 8px; padding: 12px;
+}
+.ctrl-section-title {
+	font-size: 10px; font-weight: 700; color: var(--text-muted);
+	letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+}
+
+.ctrl-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.ctrl-btn {
+	padding: 7px 10px; border-radius: 6px;
+	background: var(--panel3); border: 1px solid var(--border2);
+	color: var(--text-dim); cursor: pointer;
+	font-size: 11px; font-weight: 600; transition: all 0.15s;
+}
+.ctrl-btn:hover { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: var(--text); }
+.ctrl-btn.primary { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.4); color: var(--accent); }
+.ctrl-btn.primary:hover { background: rgba(56,189,248,0.25); }
+.ctrl-btn.secondary { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.35); color: var(--accent); }
+.ctrl-btn.danger { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: var(--red); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.signal-form { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.signal-form .full { grid-column: 1 / -1; }
+.signal-form label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px; }
+.signal-form input, .signal-form select {
+	width: 100%; padding: 5px 8px;
+	background: var(--panel3); border: 1px solid var(--border2);
+	color: var(--text); border-radius: 5px;
+	font-size: 12px; font-family: "JetBrains Mono", monospace;
+}
+.signal-form input:focus, .signal-form select:focus { outline: none; border-color: var(--accent); background: rgba(56,189,248,0.05); }
+
+.speed-row { display: flex; align-items: center; gap: 8px; }
+.speed-row label { font-size: 12px; color: var(--text-dim); flex: 1; }
+.speed-value { font-size: 12px; color: var(--accent); font-weight: 600; min-width: 32px; text-align: right; }
+input[type=range] {
+	flex: 2; appearance: none; -webkit-appearance: none;
+	height: 4px; background: var(--border2); border-radius: 2px; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+	-webkit-appearance: none; width: 14px; height: 14px;
+	border-radius: 50%; background: var(--accent); cursor: pointer;
+	box-shadow: 0 0 0 2px rgba(56,189,248,0.35);
+}
+
+.status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.status-pill {
+	display: inline-flex; align-items: center; gap: 6px;
+	padding: 2px 9px; border-radius: 9999px;
+	font-size: 10px; font-weight: 700;
+	text-transform: uppercase; letter-spacing: 0.6px;
+}
+.status-idle { background: rgba(100,116,139,0.15); color: var(--text-muted); border: 1px solid rgba(100,116,139,0.3); }
+.status-ready { background: rgba(56,189,248,0.1); color: var(--accent); border: 1px solid rgba(56,189,248,0.3); }
+.status-playing { background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+.status-paused { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+.status-done { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+.status-error { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+
+.counters-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.counter-box {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 8px; text-align: center;
+}
+.counter-val { font-size: 20px; font-weight: 700; color: var(--accent); font-family: "Consolas", monospace; }
+.counter-label { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 2px; }
+
+.kv-list { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.kv-item {
+	display: flex; justify-content: space-between; align-items: center;
+	background: var(--panel3); border: 1px solid var(--border);
+	padding: 6px 8px; border-radius: 6px;
+	font-family: "JetBrains Mono", monospace; font-size: 11px;
+}
+.kv-item span { color: var(--text-dim); }
+.kv-item strong { color: var(--text); }
+
+#visualization {
+	flex: 1; padding: 16px;
+	display: flex; flex-direction: column; gap: 14px;
+	overflow-y: auto; min-width: 0;
+}
+
+.legend-bar {
+	display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 10px 14px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+.viz-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.panel {
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 14px;
+	flex: 1; min-width: 280px;
+}
+.panel-title {
+	font-size: 11px; font-weight: 700; color: var(--text-muted);
+	letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px;
+}
+
+.input-hint { font-size: 10px; color: var(--text-muted); }
+
+/* FFT-specific visuals */
+.fft-chart {
+	width: 100%; height: 240px;
+	background: var(--panel3);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	display: block;
+}
+
+.fft-formula {
+	font-family: "Consolas", monospace;
+	color: var(--teal); font-size: 12px;
+	margin-top: 6px; word-break: break-word;
+}
+
+.fft-info-box {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 10px;
+	font-family: "Consolas", monospace; font-size: 11px;
+	color: var(--text-dim); line-height: 1.6;
+}
+
+.fft-circuit {
+	width: 100%; height: 220px;
+	background: var(--panel3);
+	border: 1px solid var(--border);
+	border-radius: 6px; display: block;
+}
+.fft-circuit-line { stroke: var(--text-muted); stroke-width: 2; fill: none; }
+.fft-circuit-line.active { stroke: var(--accent); }
+.fft-circuit-node { fill: var(--panel); stroke: var(--accent); stroke-width: 2; }
+.fft-circuit-node.active { stroke: var(--green); }
+.fft-circuit-mul { fill: var(--panel); stroke: var(--amber); stroke-width: 2; }
+.fft-circuit-mul.active { stroke: var(--amber2); }
+.fft-circuit-label { fill: var(--text-dim); font-size: 11px; font-family: "Consolas", monospace; }
+.fft-circuit-label.active { fill: var(--accent); }
+.fft-circuit-op { fill: var(--text); font-size: 14px; font-weight: 700; font-family: "Consolas", monospace; }
+
+.dft-matrix-wrap { overflow-x: auto; max-height: 320px; }
+table.dft-matrix {
+	border-collapse: collapse;
+	font-family: "Consolas", monospace; font-size: 10px;
+}
+table.dft-matrix th {
+	width: 44px; height: 28px; text-align: center;
+	color: var(--text-muted); font-weight: 600; font-size: 10px;
+	background: var(--panel3); border: 1px solid var(--border);
+}
+table.dft-matrix td {
+	width: 44px; height: 28px; text-align: center;
+	border: 1px solid var(--border); font-size: 10px;
+}
+
+.bitrev-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 6px; margin-top: 8px;
+}
+.bitrev-item {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 6px 8px;
+	font-family: "Consolas", monospace; font-size: 10px;
+	color: var(--text-dim); text-align: center;
+}
+.bitrev-item strong { color: var(--accent); }
+
+.compare-box { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.compare-card {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 10px;
+}
+.compare-card .cc-title {
+	font-size: 10px; font-weight: 700; color: var(--text-muted);
+	letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px;
+}
+.compare-card .cc-complexity {
+	font-family: "Consolas", monospace; color: var(--accent);
+	font-size: 13px; font-weight: 700; margin-bottom: 4px;
+}
+.compare-card p { color: var(--text-dim); font-size: 11px; margin: 0; }
+
+.pseudocode {
+	font-family: "Consolas", monospace; font-size: 12px;
+	background: var(--panel3); border-radius: 6px;
+	padding: 10px 12px; list-style: none; line-height: 1.85;
+}
+.pseudocode li {
+	display: flex; gap: 10px; padding: 2px 6px;
+	border-radius: 3px; cursor: default;
+	transition: background 0.15s; position: relative;
+}
+.pseudocode li:hover { background: rgba(255,255,255,0.04); }
+.pseudocode li.active { background: rgba(56,189,248,0.12); }
+.pseudo-ln { color: var(--text-muted); user-select: none; min-width: 18px; text-align: right; }
+.pseudo-code { color: var(--text-dim); }
+.pseudocode li.active .pseudo-code { color: var(--text); }
+
+.pseudo-tooltip {
+	display: none; position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
+	background: var(--panel2); border: 1px solid var(--accent);
+	border-radius: 5px; padding: 6px 10px; font-size: 11px; color: var(--text-dim);
+	z-index: 10; pointer-events: none; max-width: 280px; white-space: normal; margin-left: 8px;
+}
+.pseudocode li:hover .pseudo-tooltip { display: block; }
+
+.explanation-panel {
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 14px;
+}
+#fft-step-explanation {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 12px;
+	font-size: 12px; color: var(--text-dim);
+	line-height: 1.6; min-height: 100px;
+}
+#fft-step-explanation .exp-title { font-weight: 700; color: var(--text); margin-bottom: 6px; font-size: 13px; }
+#fft-step-explanation .exp-formula { font-family: "Consolas", monospace; color: var(--teal); margin: 4px 0; }
+#fft-step-explanation .exp-warning { color: var(--red); }
+
+.history-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.history-scroll { max-height: 220px; overflow-y: auto; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: "Consolas", monospace; }
+.history-table th {
+	background: var(--panel3); color: var(--text-muted);
+	font-weight: 600; font-size: 10px; letter-spacing: 0.5px;
+	text-transform: uppercase; padding: 5px 8px; text-align: left;
+	position: sticky; top: 0; z-index: 1;
+}
+.history-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }
+.history-table tr:hover td { background: rgba(255,255,255,0.03); color: var(--text); }
+.history-table tr.history-active td { background: rgba(56,189,248,0.08); color: var(--accent); }
+
+@media (max-width: 980px) {
+	#main-tool { flex-direction: column; }
+	#controls { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+<header>
+	<div>
+		<h1>Discrete Fourier Transform &amp; FFT Circuits<span class="badge">CLO-2</span></h1>
+		<div class="meta">BSD 404 — Algorithms II &nbsp;|&nbsp; Fast Matrix Multiplication, Parallel Algorithms &amp; FFT</div>
+	</div>
+	<div class="meta">Student: Aggarwal, Parth &nbsp;|&nbsp; ID: 20220001200</div>
+</header>
+
+<nav class="algo-tabs">
+	<button class="algo-tab active" onclick="location.href='dft_fft_circuits.html'">Part 1: DFT / FFT Circuits</button>
+	<button class="algo-tab" onclick="location.href='ChineseRemainder_RSA.html'">Part 2: CRT / RSA-CRT</button>
+	<button class="algo-tab" onclick="location.href='ClosestPairPoints.html'">Part 3: Closest Pair of Points</button>
+	<button class="algo-tab" onclick="location.href='FPTAS.html'">Part 4: FPTAS</button>
+</nav>
+
+<section id="lecture-notes">
+	<div class="notes-header" onclick="toggleNotes()">
+		<h2>📚 Lecture Notes — DFT &amp; FFT Circuits</h2>
+		<button class="notes-toggle" type="button" id="notes-toggle-btn">Collapse ▲</button>
+	</div>
+	<div class="notes-body open" id="notes-body">
+		<div class="roadmap">
+			<a href="#sec1">1. The Problem</a>
+			<a href="#sec2">2. Naive DFT</a>
+			<a href="#sec3">3. Roots of Unity &amp; DFT Matrix</a>
+			<a href="#sec4">4. Cooley-Tukey</a>
+			<a href="#sec5">5. Bit-Reversal</a>
+			<a href="#sec6">6. Butterfly</a>
+			<a href="#sec7">7. Complexity</a>
+			<a href="#sec8">8. Worked Example</a>
+		</div>
+
+		<div class="notes-section" id="sec1">
+			<h3>1 — The Problem</h3>
+			<p>Given <code>n</code> complex samples <code>x[0..n−1]</code>, compute the <strong>Discrete Fourier Transform (DFT)</strong>:</p>
+			<div class="formula">X[k] = ∑(j=0..n−1) x[j] · ω<sup>j·k</sup>,&nbsp; ω = e<sup>−2πi/n</sup></div>
+			<div class="key-concept">
+				<div class="kc-title">Goal</div>
+				<p>Compute all <code>n</code> frequency bins in <code>O(n log n)</code> instead of the naive <code>O(n²)</code>, using the Cooley-Tukey FFT (1965).</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec2">
+			<h3>2 — Naive DFT</h3>
+			<p>Direct evaluation: each output <code>X[k]</code> is a length-<code>n</code> dot product. <code>n</code> outputs × <code>n</code> terms each = <strong>O(n²)</strong> complex multiplies. Equivalent to the matrix-vector product <code>X = F<sub>n</sub> · x</code> where <code>F<sub>n</sub>[j,k] = ω<sup>j·k</sup></code>.</p>
+		</div>
+
+		<div class="notes-section" id="sec3">
+			<h3>3 — Roots of Unity &amp; DFT Matrix</h3>
+			<p>The <code>n</code>-th roots of unity <code>ω<sup>0</sup>, ω<sup>1</sup>, …, ω<sup>n−1</sup></code> are equally spaced points on the unit circle. The DFT matrix <code>F<sub>n</sub>[j,k] = ω<sup>j·k</sup></code> entries are powers of these roots; phase is <code>−2π·jk/n</code>.</p>
+			<div class="key-concept">
+				<div class="kc-title">Symmetry properties</div>
+				<p><code>ω<sup>n/2</sup> = −1</code> &nbsp;and&nbsp; <code>ω<sup>k+n/2</sup> = −ω<sup>k</sup></code> — the algebraic basis for the FFT split.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec4">
+			<h3>4 — Cooley-Tukey Decomposition</h3>
+			<p>Split the input by index parity into <code>x_even</code> and <code>x_odd</code>. Compute their DFTs <code>E[k]</code> and <code>O[k]</code>, then recombine:</p>
+			<div class="formula">X[k] = E[k] + ω<sup>k</sup>·O[k] &nbsp;&nbsp; X[k+n/2] = E[k] − ω<sup>k</sup>·O[k] &nbsp;&nbsp; for k = 0..n/2−1</div>
+			<p>Two outputs share the same <code>E[k]</code> and <code>ω<sup>k</sup>·O[k]</code> — that reuse is what collapses the cost from <code>O(n²)</code> to <code>O(n log n)</code>.</p>
+		</div>
+
+		<div class="notes-section" id="sec5">
+			<h3>5 — Bit-Reversal</h3>
+			<p>The iterative FFT processes the array in-place but needs the same dependency order as the recursive form. Reordering inputs by <strong>bit-reversal of the index</strong> produces exactly that order.</p>
+			<div class="key-concept">
+				<div class="kc-title">Why it works</div>
+				<p>Recursive splits separate even/odd indices repeatedly. Bit-reversal of <code>i</code> places it next to indices that share its full recursion path, so the iterative loop combines the right pairs at every stage.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec6">
+			<h3>6 — Butterfly Operation</h3>
+			<p>The fundamental compute unit. Inputs <code>u, v</code> and twiddle <code>w</code>:</p>
+			<div class="worked-example">t       = w · v
+top     = u + t
+bottom  = u − t</div>
+			<p>One complex multiply, one add, one subtract. Each stage applies <code>n/2</code> butterflies; there are <code>log₂ n</code> stages.</p>
+		</div>
+
+		<div class="notes-section" id="sec7">
+			<h3>7 — Complexity</h3>
+			<table class="complexity-table">
+				<tr><th>Method</th><th>Time</th><th>Circuit depth</th></tr>
+				<tr><td>Naive DFT</td><td style="color:var(--red)">O(n²)</td><td>O(1)</td></tr>
+				<tr><td>FFT (Cooley-Tukey)</td><td style="color:var(--green)">O(n log n)</td><td style="color:var(--green)">O(log n)</td></tr>
+			</table>
+			<p>FFT gate count is <code>O(n log n)</code>; depth <code>O(log n)</code>. Each of the <code>log₂ n</code> stages can run all <code>n/2</code> butterflies in parallel.</p>
+		</div>
+
+		<div class="notes-section" id="sec8">
+			<h3>8 — Worked Example (N = 4)</h3>
+			<div class="worked-example">x = [1, 1, 1, 1]   (constant signal, ω = e^(-iπ/2) = -i)
+
+X[0] = 1 + 1 + 1 + 1            = 4
+X[1] = 1 + ω + ω² + ω³          = 0
+X[2] = 1 - 1 + 1 - 1            = 0
+X[3] = 1 + ω³ + ω⁶ + ω⁹         = 0
+
+→ X = [4, 0, 0, 0]   (all energy in DC bin)</div>
+		</div>
+	</div>
+</section>
+
+<main id="main-tool">
+	<aside id="controls">
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Preset Examples</div>
+			<div class="ctrl-buttons">
+				<button class="ctrl-btn secondary" type="button" id="preset-sine">Pure Sine</button>
+				<button class="ctrl-btn" type="button" id="preset-square">Square Wave</button>
+				<button class="ctrl-btn" type="button" id="preset-chirp">Chirp</button>
+				<button class="ctrl-btn" type="button" id="preset-impulse">Impulse-like</button>
+			</div>
+			<div class="input-hint" style="margin-top:6px;">Each preset loads a different signal, then click Build Steps.</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Custom Signal</div>
+			<div class="signal-form">
+				<div>
+					<label>Type</label>
+					<select id="fft-signal-type">
+						<option value="sine">Sine</option>
+						<option value="square">Square</option>
+						<option value="chirp">Chirp</option>
+					</select>
+				</div>
+				<div>
+					<label>N (power of 2)</label>
+					<select id="fft-n">
+						<option value="8">8</option>
+						<option value="16" selected>16</option>
+						<option value="32">32</option>
+						<option value="64">64</option>
+						<option value="128">128</option>
+					</select>
+				</div>
+				<div><label>Amplitude</label><input id="fft-amp" type="number" value="1" step="0.1"></div>
+				<div><label>Frequency (cycles)</label><input id="fft-freq" type="number" value="2" step="0.1"></div>
+				<div><label>Phase (radians)</label><input id="fft-phase" type="number" value="0" step="0.1"></div>
+				<div><label>Offset</label><input id="fft-offset" type="number" value="0" step="0.1"></div>
+				<button class="ctrl-btn primary full" type="button" id="btn-generate" style="grid-column: 1 / -1; margin-top: 4px;">Generate Signal</button>
+			</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Animation Controls</div>
+			<div class="speed-row">
+				<label for="fft-speed-slider">Speed</label>
+				<input type="range" id="fft-speed-slider" min="0" max="4" step="1" value="2">
+				<div class="speed-value" id="fft-speed-display">1.0×</div>
+			</div>
+			<div class="ctrl-buttons" style="margin-top: 8px;">
+				<button class="ctrl-btn primary" type="button" id="fft-btn-build">⚙ Build Steps</button>
+				<button class="ctrl-btn" type="button" id="fft-btn-step" disabled>▶| Step</button>
+				<button class="ctrl-btn" type="button" id="fft-btn-play" disabled>▶ Play</button>
+				<button class="ctrl-btn" type="button" id="fft-btn-pause" disabled>⏸ Pause</button>
+				<button class="ctrl-btn danger" type="button" id="fft-btn-reset" disabled>↺ Reset</button>
+			</div>
+			<div class="status-row" style="margin-top: 8px;">
+				<div class="status-pill status-idle" id="fft-status-badge">Idle</div>
+				<div class="input-hint">Step <strong id="fft-step-cur">0</strong> / <strong id="fft-step-total">0</strong></div>
+			</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Statistics</div>
+			<div class="counters-grid">
+				<div class="counter-box"><div class="counter-val" id="fft-cnt-stage">0</div><div class="counter-label">Stage</div></div>
+				<div class="counter-box"><div class="counter-val" id="fft-cnt-bfly">0</div><div class="counter-label">Butterflies</div></div>
+				<div class="counter-box"><div class="counter-val" id="fft-cnt-mul">0</div><div class="counter-label">Complex Mul</div></div>
+				<div class="counter-box"><div class="counter-val" id="fft-cnt-add">0</div><div class="counter-label">Complex Add/Sub</div></div>
+			</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Complexity Comparison</div>
+			<div class="compare-box">
+				<div class="compare-card">
+					<div class="cc-title">Naive DFT</div>
+					<div class="cc-complexity">O(n²)</div>
+					<p id="fft-dft-ops">-</p>
+				</div>
+				<div class="compare-card">
+					<div class="cc-title">FFT</div>
+					<div class="cc-complexity" style="color:var(--green)">O(n log n)</div>
+					<p id="fft-fft-ops">-</p>
+				</div>
+			</div>
+			<div class="input-hint" id="fft-speedup-note" style="margin-top:6px;">For N=16, naive DFT ~ 256 terms vs FFT ~ 64 butterfly scale.</div>
+		</div>
+	</aside>
+
+	<section id="visualization">
+		<div class="legend-bar">
+			<span style="font-size:10px; color:var(--text-muted); font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-right:4px;">Legend:</span>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--accent); background: rgba(56,189,248,0.2);"></div>Time domain x[n]</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--teal); background: rgba(45,212,191,0.2);"></div>Frequency |X[k]|</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--amber); background: rgba(251,191,36,0.2);"></div>Active butterfly</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--green); background: rgba(74,222,128,0.2);"></div>FFT complete</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel">
+				<div class="panel-title">Time Domain Signal x[n]</div>
+				<svg id="fft-time-chart" class="fft-chart" viewBox="0 0 800 240"></svg>
+			</div>
+			<div class="panel">
+				<div class="panel-title">Frequency Magnitude |X[k]|</div>
+				<svg id="fft-freq-chart" class="fft-chart" viewBox="0 0 800 240"></svg>
+			</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel">
+				<div class="panel-title">DFT Matrix (Phase Colored)</div>
+				<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+					<span class="input-hint">Matrix size (N)</span>
+					<select class="signal-form" id="dft-n" style="max-width:90px; padding:5px 8px; background:var(--panel3); border:1px solid var(--border2); color:var(--text); border-radius:5px; font-size:12px; font-family:'JetBrains Mono', monospace;">
+						<option value="4">4</option>
+						<option value="8" selected>8</option>
+					</select>
+				</div>
+				<div class="dft-matrix-wrap" id="dft-matrix-wrap"></div>
+				<div class="input-hint" style="margin-top:6px;">Hover a cell to see its phase (multiples of π). Color encodes angle on the unit circle.</div>
+			</div>
+			<div class="panel">
+				<div class="panel-title">Bit-Reversal Permutation</div>
+				<div class="input-hint" id="bitrev-note">Bit-reversal order for N=8 (3 bits).</div>
+				<div class="bitrev-grid" id="bitrev-grid"></div>
+				<div class="input-hint" style="margin-top:6px;">Bit-reversal lets the iterative FFT match the recursive dependency order.</div>
+			</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel">
+				<div class="panel-title">Butterfly Circuit Diagram</div>
+				<svg id="fft-butterfly-circuit" class="fft-circuit" viewBox="0 0 520 220"></svg>
+				<div class="input-hint" style="margin-top:6px;">Upper path = u, lower path = v scaled by w. Outputs are u + t and u − t.</div>
+			</div>
+			<div class="panel">
+				<div class="panel-title">Current Butterfly (Live Values)</div>
+				<div class="fft-info-box" id="fft-butterfly-info">Generate a signal and build steps to inspect each butterfly operation.</div>
+				<div class="panel-title" style="margin-top: 12px;">Numeric Substitution</div>
+				<div class="worked-example" id="fft-butterfly-worked">Build steps to see the numeric substitution for t = w·v, top = u + t, bottom = u − t.</div>
+			</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel">
+				<div class="panel-title">FFT Pseudocode</div>
+				<ol class="pseudocode" id="fft-pseudocode">
+					<li data-line="1"><span class="pseudo-ln">1</span><span class="pseudo-code">x ← bitReverse(x)</span><div class="pseudo-tooltip">Reorder indices so iterative butterflies match the recursive FFT structure.</div></li>
+					<li data-line="2"><span class="pseudo-ln">2</span><span class="pseudo-code">for s = 1 to log₂(n):</span><div class="pseudo-tooltip">Each stage doubles the butterfly width and merges larger frequency groups.</div></li>
+					<li data-line="3"><span class="pseudo-ln">3</span><span class="pseudo-code">&nbsp;&nbsp;m ← 2^s</span><div class="pseudo-tooltip">m is the current block size: 2, 4, 8, …, N.</div></li>
+					<li data-line="4"><span class="pseudo-ln">4</span><span class="pseudo-code">&nbsp;&nbsp;for k = 0 to n−1 step m:</span><div class="pseudo-tooltip">Process each block independently at this stage.</div></li>
+					<li data-line="5"><span class="pseudo-ln">5</span><span class="pseudo-code">&nbsp;&nbsp;&nbsp;&nbsp;for j = 0 to m/2 − 1:</span><div class="pseudo-tooltip">Each j picks one butterfly pair inside the block.</div></li>
+					<li data-line="6"><span class="pseudo-ln">6</span><span class="pseudo-code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t ← w · x[k+j+m/2]</span><div class="pseudo-tooltip">Apply twiddle factor to the lower-half element.</div></li>
+					<li data-line="7"><span class="pseudo-ln">7</span><span class="pseudo-code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;u ← x[k+j]</span><div class="pseudo-tooltip">Read the upper-half element before overwriting.</div></li>
+					<li data-line="8"><span class="pseudo-ln">8</span><span class="pseudo-code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x[k+j] ← u + t</span><div class="pseudo-tooltip">Top output: constructive combination.</div></li>
+					<li data-line="9"><span class="pseudo-ln">9</span><span class="pseudo-code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x[k+j+m/2] ← u − t</span><div class="pseudo-tooltip">Bottom output: destructive combination.</div></li>
+				</ol>
+			</div>
+			<div class="explanation-panel" style="flex:1; min-width: 280px;">
+				<div class="panel-title">Step Explanation</div>
+				<div id="fft-step-explanation">
+					<div class="exp-title">Ready</div>
+					<p>Generate a signal, then click <strong>Build Steps</strong>. The explanation panel narrates bit-reversal, stage growth, twiddle usage, and butterfly updates with real values.</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel">
+				<div class="panel-title">Polynomial Evaluation View</div>
+				<div class="fft-info-box" id="fft-poly-view">Build steps to see X[k] as evaluations of P(z) at roots of unity.</div>
+			</div>
+			<div class="panel">
+				<div class="panel-title">Inverse DFT Reconstruction</div>
+				<div class="fft-info-box" id="fft-ifft-check">After completion, this panel shows IFFT(FFT(x)) reconstruction quality.</div>
+			</div>
+		</div>
+
+		<div class="history-panel">
+			<div class="panel-title">Step History <span style="color:var(--text-muted);font-weight:normal;">(click a row to jump)</span></div>
+			<div class="history-scroll">
+				<table class="history-table">
+					<thead>
+						<tr><th>#</th><th>Stage</th><th>Block</th><th>j</th><th>Indices</th><th>Twiddle</th><th>Action</th></tr>
+					</thead>
+					<tbody id="fft-history-body">
+						<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:12px;">Build steps to see FFT history.</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</section>
+</main>
+
+<script>
+const SPEED_MAP = [2000, 1000, 500, 250, 100];
+const SPEED_LABELS = ['0.25×', '0.5×', '1.0×', '2.0×', '4.0×'];
+
+let fftState = {
+	n: 16,
+	signal: [],
+	spectrum: [],
+	steps: [],
+	currentStep: -1,
+	playing: false,
+	playTimer: null,
+	speed: 2,
+	status: 'idle',
+	done: false,
+	maxInteractiveN: 128
+};
+
+const PRESETS = {
+	sine:    { type: 'sine',   n: 16, amp: 1, freq: 2, phase: 0, offset: 0 },
+	square:  { type: 'square', n: 16, amp: 1, freq: 3, phase: 0, offset: 0 },
+	chirp:   { type: 'chirp',  n: 32, amp: 1, freq: 1, phase: 0, offset: 0 },
+	impulse: { type: 'sine',   n: 16, amp: 1, freq: 1, phase: 0, offset: 0.5 }
+};
+
+// ── Complex number utilities ──
+function c(re, im) { return { re, im }; }
+function cAdd(a, b) { return c(a.re + b.re, a.im + b.im); }
+function cSub(a, b) { return c(a.re - b.re, a.im - b.im); }
+function cMul(a, b) { return c(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re); }
+function cScale(a, s) { return c(a.re * s, a.im * s); }
+function cConj(a) { return c(a.re, -a.im); }
+function cAbs(a) { return Math.sqrt(a.re * a.re + a.im * a.im); }
+function cFmt(a) {
+	const r = Math.abs(a.re) < 1e-10 ? 0 : a.re;
+	const i = Math.abs(a.im) < 1e-10 ? 0 : a.im;
+	return `${r.toFixed(3)}${i >= 0 ? ' + ' : ' − '}${Math.abs(i).toFixed(3)}i`;
+}
+
+function isPowerOfTwo(n) { return n > 0 && (n & (n - 1)) === 0; }
+
+function reverseBits(x, bits) {
+	let y = 0;
+	for (let i = 0; i < bits; i++) { y = (y << 1) | (x & 1); x >>= 1; }
+	return y;
+}
+
+function bitReversePermutation(arr) {
+	const n = arr.length;
+	const bits = Math.log2(n);
+	const out = new Array(n);
+	for (let i = 0; i < n; i++) out[reverseBits(i, bits)] = arr[i];
+	return out;
+}
+
+function getDftMatrixSize() {
+	const sel = document.getElementById('dft-n');
+	const n = sel ? parseInt(sel.value, 10) : 8;
+	return Number.isFinite(n) ? n : 8;
+}
+
+function dftCellLabel(exp) {
+	if (exp === 0) return '1';
+	if (exp === 1) return 'ω';
+	return `ω<sup>${exp}</sup>`;
+}
+
+function renderDftMatrix(n) {
+	const wrap = document.getElementById('dft-matrix-wrap');
+	if (!wrap) return;
+	if (!n || !isPowerOfTwo(n) || n > 8) {
+		wrap.innerHTML = '<div class="input-hint">Select N = 4 or 8 for the DFT matrix.</div>';
+		return;
+	}
+	let html = '<table class="dft-matrix">';
+	html += '<tr><th>j\\k</th>';
+	for (let k = 0; k < n; k++) html += `<th>${k}</th>`;
+	html += '</tr>';
+	for (let j = 0; j < n; j++) {
+		html += `<tr><th>${j}</th>`;
+		for (let k = 0; k < n; k++) {
+			const exp = (j * k) % n;
+			const theta = -2 * Math.PI * exp / n;
+			const hue = ((theta / (2 * Math.PI)) * 360 + 360) % 360;
+			const bg = `hsl(${hue.toFixed(0)}, 55%, 24%)`;
+			const fg = `hsl(${hue.toFixed(0)}, 65%, 78%)`;
+			const anglePi = (theta / Math.PI).toFixed(2);
+			html += `<td style="background:${bg}; color:${fg};" title="phase = ${anglePi}π rad">${dftCellLabel(exp)}</td>`;
+		}
+		html += '</tr>';
+	}
+	html += '</table>';
+	wrap.innerHTML = html;
+}
+
+function renderBitReversal(n) {
+	const grid = document.getElementById('bitrev-grid');
+	const note = document.getElementById('bitrev-note');
+	if (!grid || !note) return;
+	if (!n || !isPowerOfTwo(n)) {
+		note.textContent = 'Bit-reversal requires N to be a power of 2.';
+		grid.innerHTML = '';
+		return;
+	}
+	const bits = Math.log2(n);
+	note.textContent = `Bit-reversal order for N=${n} (${bits} bits).`;
+	let html = '';
+	for (let i = 0; i < n; i++) {
+		const rev = reverseBits(i, bits);
+		const iBits = i.toString(2).padStart(bits, '0');
+		const rBits = rev.toString(2).padStart(bits, '0');
+		html += `<div class="bitrev-item">${i} (${iBits}) → <strong>${rev}</strong> (${rBits})</div>`;
+	}
+	grid.innerHTML = html;
+}
+
+function onDftSizeChange(val) {
+	const n = parseInt(val, 10);
+	renderDftMatrix(n);
+	renderBitReversal(n);
+}
+
+function renderButterflyCircuit(step) {
+	const svg = document.getElementById('fft-butterfly-circuit');
+	if (!svg) return;
+	const isBfly = step && step.type === 'butterfly';
+	const lineClass = `fft-circuit-line${isBfly ? ' active' : ''}`;
+	const nodeClass = `fft-circuit-node${isBfly ? ' active' : ''}`;
+	const mulClass = `fft-circuit-mul${isBfly ? ' active' : ''}`;
+	const labelClass = `fft-circuit-label${isBfly ? ' active' : ''}`;
+
+	const uText = isBfly ? `u = x[${step.topIdx}] = ${cFmt(step.u)}` : 'u';
+	const vText = isBfly ? `v = x[${step.botIdx}] = ${cFmt(step.v)}` : 'v';
+	const wText = isBfly ? `w = ${cFmt(step.w)}` : 'w';
+	const tText = isBfly ? `t = ${cFmt(step.t)}` : 't = w·v';
+	const topText = isBfly ? `top = ${cFmt(step.topNew)}` : 'top = u + t';
+	const botText = isBfly ? `bottom = ${cFmt(step.botNew)}` : 'bottom = u − t';
+
+	svg.innerHTML = `
+		<path class="${lineClass}" d="M40 60 H160" />
+		<path class="${lineClass}" d="M160 60 H300" />
+		<path class="${lineClass}" d="M160 60 V160 H300" />
+		<path class="${lineClass}" d="M40 160 H170" />
+		<rect class="${mulClass}" x="184" y="144" width="32" height="32" rx="6" />
+		<text class="fft-circuit-op" x="200" y="165" text-anchor="middle">×</text>
+		<path class="${lineClass}" d="M216 160 L300 60" />
+		<path class="${lineClass}" d="M216 160 H300" />
+		<circle class="${nodeClass}" cx="340" cy="60" r="16" />
+		<circle class="${nodeClass}" cx="340" cy="160" r="16" />
+		<text class="fft-circuit-op" x="340" y="65" text-anchor="middle">+</text>
+		<text class="fft-circuit-op" x="340" y="165" text-anchor="middle">−</text>
+		<path class="${lineClass}" d="M356 60 H480" />
+		<path class="${lineClass}" d="M356 160 H480" />
+		<text class="${labelClass}" x="20" y="52">${uText}</text>
+		<text class="${labelClass}" x="20" y="172">${vText}</text>
+		<text class="${labelClass}" x="176" y="130">${wText}</text>
+		<text class="${labelClass}" x="240" y="110">${tText}</text>
+		<text class="${labelClass}" x="392" y="52">${topText}</text>
+		<text class="${labelClass}" x="392" y="172">${botText}</text>
+	`;
+}
+
+function twiddle(j, m) {
+	const angle = -2 * Math.PI * j / m;
+	return c(Math.cos(angle), Math.sin(angle));
+}
+
+function cloneComplexArray(arr) { return arr.map(z => c(z.re, z.im)); }
+
+function generateSignal(type, n, amp, freq, phase, offset) {
+	const sig = [];
+	for (let t = 0; t < n; t++) {
+		const x = t / n;
+		let val = 0;
+		if (type === 'sine') {
+			val = amp * Math.sin(2 * Math.PI * freq * x + phase) + offset;
+		} else if (type === 'square') {
+			const s = Math.sin(2 * Math.PI * freq * x + phase);
+			val = amp * (s >= 0 ? 1 : -1) + offset;
+		} else {
+			const sweep = freq + (freq * x);
+			val = amp * Math.sin(2 * Math.PI * sweep * x + phase) + offset;
+		}
+		sig.push(c(val, 0));
+	}
+	return sig;
+}
+
+function magnitudes(arr) { return arr.map(cAbs); }
+
+function fftNoSteps(input) {
+	const n = input.length;
+	let a = bitReversePermutation(cloneComplexArray(input));
+	for (let s = 1; s <= Math.log2(n); s++) {
+		const m = 1 << s;
+		const half = m >> 1;
+		for (let k = 0; k < n; k += m) {
+			for (let j = 0; j < half; j++) {
+				const w = twiddle(j, m);
+				const t = cMul(w, a[k + j + half]);
+				const u = a[k + j];
+				a[k + j] = cAdd(u, t);
+				a[k + j + half] = cSub(u, t);
+			}
+		}
+	}
+	return a;
+}
+
+function ifftFromSpectrum(spec) {
+	const n = spec.length;
+	const conj = spec.map(cConj);
+	const inv = fftNoSteps(conj).map(cConj);
+	return inv.map(z => cScale(z, 1 / n));
+}
+
+function fftGenerateSteps(signal) {
+	const n = signal.length;
+	let a = bitReversePermutation(cloneComplexArray(signal));
+	const steps = [];
+	let bfly = 0, mulOps = 0, addOps = 0;
+
+	steps.push({
+		type: 'init',
+		lines: [1],
+		stage: 0, block: '-', j: '-',
+		array: cloneComplexArray(a),
+		desc: `<div class="exp-title">Bit-reversal reorder</div>Input reordered for iterative Cooley-Tukey.`,
+		bfly, mulOps, addOps
+	});
+
+	const stages = Math.log2(n);
+	for (let s = 1; s <= stages; s++) {
+		const m = 1 << s;
+		const half = m >> 1;
+		steps.push({
+			type: 'stage',
+			lines: [2, 3],
+			stage: s, block: '-', j: '-', m,
+			array: cloneComplexArray(a),
+			desc: `<div class="exp-title">Stage ${s}</div>Butterfly size m = ${m}.`,
+			bfly, mulOps, addOps
+		});
+
+		for (let k = 0; k < n; k += m) {
+			for (let j = 0; j < half; j++) {
+				const w = twiddle(j, m);
+				const topIdx = k + j;
+				const botIdx = k + j + half;
+				const u = a[topIdx];
+				const v = a[botIdx];
+				const t = cMul(w, v);
+				const topNew = cAdd(u, t);
+				const botNew = cSub(u, t);
+
+				a[topIdx] = topNew;
+				a[botIdx] = botNew;
+				bfly++; mulOps++; addOps += 2;
+
+				steps.push({
+					type: 'butterfly',
+					lines: [4, 5, 6, 7, 8, 9],
+					stage: s, block: `${k}..${k + m - 1}`, j, m,
+					topIdx, botIdx, w, u, v, t, topNew, botNew,
+					array: cloneComplexArray(a),
+					desc: `<div class="exp-title">Butterfly update</div><div class="exp-formula">u = x[${topIdx}], v = x[${botIdx}], w = e^(-2πi·${j}/${m})</div><div class="exp-formula">x[${topIdx}] = u + w·v, x[${botIdx}] = u − w·v</div>`,
+					bfly, mulOps, addOps
+				});
+			}
+		}
+	}
+
+	const spectrum = cloneComplexArray(a);
+	steps.push({
+		type: 'done',
+		lines: [9],
+		stage: stages, block: '-', j: '-',
+		array: spectrum,
+		desc: `<div class="exp-title" style="color:var(--green)">FFT complete</div>Computed all ${n} frequency bins.`,
+		bfly, mulOps, addOps
+	});
+
+	return { steps, spectrum };
+}
+
+function drawLineChart(svgId, values, color, yLabel) {
+	const svg = document.getElementById(svgId);
+	if (!svg || !values || values.length === 0) return;
+	const w = 800, h = 240, padL = 56, padR = 20, padT = 16, padB = 34;
+	const innerW = w - padL - padR, innerH = h - padT - padB;
+	const minY = Math.min(...values), maxY = Math.max(...values);
+	const span = Math.max(1e-9, maxY - minY);
+
+	let path = '', points = '', labels = '';
+	values.forEach((v, i) => {
+		const x = padL + (i * innerW) / Math.max(1, values.length - 1);
+		const y = h - padB - ((v - minY) * innerH) / span;
+		path += `${i === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)} `;
+		points += `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="2.6" fill="${color}"/>`;
+		const ly = Math.max(padT + 10, y - 7);
+		if (values.length <= 32) {
+			labels += `<text x="${x.toFixed(2)}" y="${ly.toFixed(2)}" fill="#cbd5e1" font-size="9" text-anchor="middle">(${i}, ${v.toFixed(2)})</text>`;
+		}
+	});
+
+	const yTicks = 5;
+	let yGrid = '', yTickLabels = '';
+	for (let t = 0; t < yTicks; t++) {
+		const ratio = t / (yTicks - 1);
+		const y = padT + ratio * innerH;
+		const yVal = maxY - ratio * span;
+		yGrid += `<line x1="${padL}" y1="${y.toFixed(2)}" x2="${w - padR}" y2="${y.toFixed(2)}" stroke="#334155" stroke-width="1" opacity="0.45" stroke-dasharray="3 3"/>`;
+		yTickLabels += `<text x="${padL - 8}" y="${(y + 3).toFixed(2)}" fill="#94a3b8" font-size="10" text-anchor="end">${yVal.toFixed(2)}</text>`;
+	}
+
+	const xTickCount = Math.min(9, values.length);
+	let xTicks = '';
+	for (let t = 0; t < xTickCount; t++) {
+		const idx = Math.round((t * (values.length - 1)) / Math.max(1, xTickCount - 1));
+		const x = padL + (idx * innerW) / Math.max(1, values.length - 1);
+		xTicks += `<line x1="${x.toFixed(2)}" y1="${h - padB}" x2="${x.toFixed(2)}" y2="${h - padB + 4}" stroke="#64748b" stroke-width="1"/>`;
+		xTicks += `<text x="${x.toFixed(2)}" y="${h - padB + 16}" fill="#94a3b8" font-size="10" text-anchor="middle">${idx}</text>`;
+	}
+
+	svg.innerHTML = `
+		<rect x="0" y="0" width="${w}" height="${h}" fill="transparent"/>
+		${yGrid}
+		<line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="#64748b" stroke-width="1.2"/>
+		<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="#64748b" stroke-width="1.2"/>
+		${yTickLabels}
+		${xTicks}
+		<text x="${padL + 4}" y="${padT + 12}" fill="#94a3b8" font-size="11">${yLabel}</text>
+		<text x="${(padL + innerW / 2).toFixed(2)}" y="${h - 8}" fill="#94a3b8" font-size="11" text-anchor="middle">Sample index n</text>
+		<path d="${path}" fill="none" stroke="${color}" stroke-width="2"/>
+		${points}
+		${labels}
+	`;
+}
+
+function drawBarChart(svgId, values) {
+	const svg = document.getElementById(svgId);
+	if (!svg || !values || values.length === 0) return;
+	const w = 800, h = 240, padL = 56, padR = 20, padT = 16, padB = 34;
+	const innerW = w - padL - padR, innerH = h - padT - padB;
+	const maxV = Math.max(...values, 1e-9);
+	const barW = innerW / values.length;
+
+	let bars = '', labels = '';
+	values.forEach((v, i) => {
+		const bh = (innerH * v) / maxV;
+		const x = padL + i * barW + 1;
+		const y = h - padB - bh;
+		const bw = Math.max(1, barW - 2);
+		const cx = x + bw / 2;
+		bars += `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${bw.toFixed(2)}" height="${bh.toFixed(2)}" fill="#2dd4bf" opacity="0.85"/>`;
+		const ly = Math.max(padT + 10, y - 5);
+		if (values.length <= 32) {
+			labels += `<text x="${cx.toFixed(2)}" y="${ly.toFixed(2)}" fill="#cbd5e1" font-size="9" text-anchor="middle">(${i}, ${v.toFixed(2)})</text>`;
+		}
+	});
+
+	const yTicks = 5;
+	let yGrid = '', yTickLabels = '';
+	for (let t = 0; t < yTicks; t++) {
+		const ratio = t / (yTicks - 1);
+		const y = padT + ratio * innerH;
+		const yVal = maxV - ratio * maxV;
+		yGrid += `<line x1="${padL}" y1="${y.toFixed(2)}" x2="${w - padR}" y2="${y.toFixed(2)}" stroke="#334155" stroke-width="1" opacity="0.45" stroke-dasharray="3 3"/>`;
+		yTickLabels += `<text x="${padL - 8}" y="${(y + 3).toFixed(2)}" fill="#94a3b8" font-size="10" text-anchor="end">${yVal.toFixed(2)}</text>`;
+	}
+
+	const xTickCount = Math.min(9, values.length);
+	let xTicks = '';
+	for (let t = 0; t < xTickCount; t++) {
+		const idx = Math.round((t * (values.length - 1)) / Math.max(1, xTickCount - 1));
+		const x = padL + (idx + 0.5) * barW;
+		xTicks += `<line x1="${x.toFixed(2)}" y1="${h - padB}" x2="${x.toFixed(2)}" y2="${h - padB + 4}" stroke="#64748b" stroke-width="1"/>`;
+		xTicks += `<text x="${x.toFixed(2)}" y="${h - padB + 16}" fill="#94a3b8" font-size="10" text-anchor="middle">${idx}</text>`;
+	}
+
+	svg.innerHTML = `
+		<rect x="0" y="0" width="${w}" height="${h}" fill="transparent"/>
+		${yGrid}
+		<line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="#64748b" stroke-width="1.2"/>
+		<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="#64748b" stroke-width="1.2"/>
+		${yTickLabels}
+		${xTicks}
+		<text x="${padL + 4}" y="${padT + 12}" fill="#94a3b8" font-size="11">|X[k]|</text>
+		<text x="${(padL + innerW / 2).toFixed(2)}" y="${h - 8}" fill="#94a3b8" font-size="11" text-anchor="middle">Frequency bin k</text>
+		${bars}
+		${labels}
+	`;
+}
+
+function fftSetStatus(s) {
+	fftState.status = s;
+	const badge = document.getElementById('fft-status-badge');
+	if (!badge) return;
+	badge.className = 'status-pill status-' + s;
+	badge.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function fftSetControlsReady(ready) {
+	document.getElementById('fft-btn-step').disabled = !ready;
+	document.getElementById('fft-btn-play').disabled = !ready;
+	document.getElementById('fft-btn-reset').disabled = !ready;
+	document.getElementById('fft-btn-pause').disabled = true;
+}
+
+function fftUpdateComplexity() {
+	const n = fftState.n;
+	const dftOps = n * n;
+	const fftOps = Math.round(n * Math.log2(n));
+	document.getElementById('fft-dft-ops').textContent = `~ ${dftOps} core terms`;
+	document.getElementById('fft-fft-ops').textContent = `~ ${fftOps} butterfly scale`;
+	const note = document.getElementById('fft-speedup-note');
+	if (note) note.textContent = `For N=${n}, naive DFT ~ ${dftOps} terms vs FFT ~ ${fftOps} butterfly scale (speedup ~${(dftOps / Math.max(1, fftOps)).toFixed(1)}×).`;
+}
+
+function fftUpdatePolynomialView(step) {
+	const el = document.getElementById('fft-poly-view');
+	if (!el || !step) return;
+	const n = fftState.n;
+	const coeffCount = Math.min(6, fftState.signal.length);
+	const coeffs = fftState.signal.slice(0, coeffCount).map((z, i) => `x[${i}] = ${z.re.toFixed(3)}`).join(', ');
+	const showK = Math.min(4, step.array.length);
+	const evals = [];
+	for (let k = 0; k < showK; k++) evals.push(`X[${k}] = ${cFmt(step.array[k])}`);
+	const stageNote = step.type === 'done' ? 'Final evaluations at roots of unity.' : 'Intermediate values (final X[k] after completion).';
+	el.innerHTML =
+		`<div style="margin-bottom:6px;color:var(--text-muted);">P(z) = ∑ x[n] z^n,&nbsp; ω_N = exp(-2πi/${n})</div>` +
+		`<div style="margin-bottom:6px;color:var(--text-dim);">${coeffs}${fftState.signal.length > coeffCount ? ', …' : ''}</div>` +
+		`<div style="margin-bottom:6px;color:var(--text-dim);">${evals.join('<br>')}</div>` +
+		`<div style="color:var(--text-muted); font-size:11px;">${stageNote}</div>`;
+}
+
+function fftGenerateSignal() {
+	const n = parseInt(document.getElementById('fft-n').value, 10);
+	const type = document.getElementById('fft-signal-type').value;
+	const amp = parseFloat(document.getElementById('fft-amp').value);
+	const freq = parseFloat(document.getElementById('fft-freq').value);
+	const phase = parseFloat(document.getElementById('fft-phase').value);
+	const offset = parseFloat(document.getElementById('fft-offset').value);
+
+	if (!isPowerOfTwo(n) || n > fftState.maxInteractiveN) {
+		document.getElementById('fft-step-explanation').innerHTML = `<div class="exp-title exp-warning">Invalid size</div>N must be a power of 2 and ≤ ${fftState.maxInteractiveN} for smooth interactive playback.`;
+		return;
+	}
+
+	fftPause();
+	fftState.n = n;
+	fftState.signal = generateSignal(type, n, amp, freq, phase, offset);
+	fftState.steps = [];
+	fftState.currentStep = -1;
+	fftState.done = false;
+
+	drawLineChart('fft-time-chart', fftState.signal.map(z => z.re), '#38bdf8', 'x[n]');
+	drawBarChart('fft-freq-chart', new Array(n).fill(0));
+	document.getElementById('fft-butterfly-info').textContent = 'Signal ready. Click Build Steps to compute FFT stages.';
+	document.getElementById('fft-step-total').textContent = '0';
+	document.getElementById('fft-step-cur').textContent = '0';
+	document.getElementById('fft-history-body').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:12px;">Build steps to see FFT history.</td></tr>';
+	document.getElementById('fft-ifft-check').textContent = 'After completion, this panel shows IFFT(FFT(x)) reconstruction quality.';
+	document.getElementById('fft-butterfly-worked').textContent = 'Build steps to see the numeric substitution for t = w·v, top = u + t, bottom = u − t.';
+	document.getElementById('fft-step-explanation').innerHTML =
+		`<div class="exp-title">Signal Generated</div>` +
+		`<div>Type: <strong>${type}</strong>, N = <strong>${n}</strong>, amplitude = ${amp}, frequency cycles = ${freq}, phase = ${phase}, offset = ${offset}.</div>` +
+		`<div style="margin-top:6px;color:var(--text-muted);">Expectation: dominant bins should appear near k ≈ ${freq.toFixed(2)} (and symmetric partner).</div>`;
+
+	fftSetControlsReady(false);
+	document.getElementById('fft-btn-build').disabled = false;
+	fftSetStatus('idle');
+	fftUpdateComplexity();
+	const dftN = getDftMatrixSize();
+	renderDftMatrix(dftN);
+	renderBitReversal(dftN);
+	renderButterflyCircuit(null);
+}
+
+function fftBuildHistory(steps) {
+	let html = '';
+	steps.forEach((s, idx) => {
+		const tw = s.w ? cFmt(s.w) : '-';
+		const indices = s.type === 'butterfly' ? `${s.topIdx}, ${s.botIdx}` : '-';
+		html += `<tr data-index="${idx}"><td>${idx + 1}</td><td>${s.stage}</td><td>${s.block}</td><td>${s.j}</td><td>${indices}</td><td>${tw}</td><td>${s.type}</td></tr>`;
+	});
+	document.getElementById('fft-history-body').innerHTML = html || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:12px;">No steps generated.</td></tr>';
+}
+
+function fftBuildSteps() {
+	if (!fftState.signal.length) fftGenerateSignal();
+	if (!fftState.signal.length) return;
+	const { steps, spectrum } = fftGenerateSteps(fftState.signal);
+	fftState.steps = steps;
+	fftState.spectrum = spectrum;
+	fftState.currentStep = -1;
+	fftState.done = false;
+	document.getElementById('fft-step-total').textContent = steps.length;
+	document.getElementById('fft-step-cur').textContent = '0';
+	fftBuildHistory(steps);
+	fftSetControlsReady(true);
+	fftSetStatus('ready');
+	document.getElementById('fft-step-explanation').innerHTML =
+		`<div class="exp-title">Steps Built</div>` +
+		`<div>Generated <strong>${steps.length}</strong> visualization steps for N = ${fftState.n}.</div>` +
+		`<div style="margin-top:6px;color:var(--text-muted);">Stages: ${Math.log2(fftState.n)}. Use Step/Play to observe each butterfly and twiddle update.</div>`;
+	fftRenderStep(0);
+}
+
+function fftRenderStep(idx) {
+	if (idx < 0 || idx >= fftState.steps.length) return;
+	const s = fftState.steps[idx];
+	fftState.currentStep = idx;
+
+	document.getElementById('fft-step-cur').textContent = idx + 1;
+	document.getElementById('fft-cnt-stage').textContent = s.stage;
+	document.getElementById('fft-cnt-bfly').textContent = s.bfly;
+	document.getElementById('fft-cnt-mul').textContent = s.mulOps;
+	document.getElementById('fft-cnt-add').textContent = s.addOps;
+
+	drawLineChart('fft-time-chart', fftState.signal.map(z => z.re), '#38bdf8', 'x[n]');
+	drawBarChart('fft-freq-chart', magnitudes(s.array));
+
+	fftUpdatePolynomialView(s);
+	renderButterflyCircuit(s);
+
+	if (s.type === 'butterfly') {
+		document.getElementById('fft-butterfly-info').innerHTML =
+			`Stage ${s.stage}, block ${s.block}, j=${s.j}<br>` +
+			`w = ${cFmt(s.w)}<br>` +
+			`u = x[${s.topIdx}] = ${cFmt(s.u)}<br>` +
+			`v = x[${s.botIdx}] = ${cFmt(s.v)}<br>` +
+			`x[${s.topIdx}] = ${cFmt(s.topNew)}<br>` +
+			`x[${s.botIdx}] = ${cFmt(s.botNew)}`;
+	} else {
+		document.getElementById('fft-butterfly-info').innerHTML = `Stage ${s.stage}: ${s.type} step`;
+	}
+
+	if (s.type === 'butterfly') {
+		const twAngle = (-2 * Math.PI * s.j / s.m).toFixed(4);
+		document.getElementById('fft-butterfly-worked').textContent =
+`Stage ${s.stage}, block ${s.block}, j=${s.j}
+w = exp(-2πi·${s.j}/${s.m}) = exp(i·${twAngle}) = ${cFmt(s.w)}
+u = x[${s.topIdx}] = ${cFmt(s.u)}
+v = x[${s.botIdx}] = ${cFmt(s.v)}
+t = w·v = ${cFmt(s.t)}
+top = u + t = ${cFmt(s.topNew)}
+bottom = u − t = ${cFmt(s.botNew)}`;
+	} else if (s.type === 'stage') {
+		document.getElementById('fft-butterfly-worked').textContent =
+`Stage ${s.stage} setup
+Block size m = ${s.m}
+Half size = m/2 = ${s.m / 2}
+At this stage we combine size-${s.m / 2} transforms into size-${s.m} transforms.`;
+	} else if (s.type === 'init') {
+		document.getElementById('fft-butterfly-worked').textContent =
+`Initialization
+Input is reordered with bit-reversal before staged butterflies.
+This allows iterative computation to follow the recursive dependency order.`;
+	} else if (s.type === 'done') {
+		document.getElementById('fft-butterfly-worked').textContent =
+`FFT complete
+All butterfly stages are finished.
+Use the frequency chart and largest-bin note to interpret dominant components.`;
+	}
+
+	let extra = '';
+	if (s.type === 'stage') {
+		extra = `<div style="margin-top:6px;color:var(--text-muted);">At stage ${s.stage}, block size m=${s.m}. The algorithm combines subproblems of size ${s.m / 2} into size ${s.m}.</div>`;
+	} else if (s.type === 'butterfly') {
+		extra = `<div style="margin-top:6px;color:var(--text-muted);">This butterfly mixes indices ${s.topIdx} and ${s.botIdx}. Twiddle angle = -2π·${s.j}/${s.m}. top = u + w·v, bottom = u − w·v.</div>`;
+	} else if (s.type === 'init') {
+		extra = `<div style="margin-top:6px;color:var(--text-muted);">Bit-reversal arranges data so iterative updates match the recursive FFT dependency order.</div>`;
+	} else if (s.type === 'done') {
+		const mags = magnitudes(s.array);
+		let topK = 0;
+		for (let i = 1; i < mags.length; i++) if (mags[i] > mags[topK]) topK = i;
+		extra = `<div style="margin-top:6px;color:var(--text-muted);">Largest magnitude bin: k=${topK}, |X[k]|=${mags[topK].toFixed(4)}. Check symmetry for real-valued inputs.</div>`;
+	}
+	document.getElementById('fft-step-explanation').innerHTML = s.desc + extra;
+
+	document.querySelectorAll('#fft-pseudocode li').forEach(li => li.classList.remove('active'));
+	(s.lines || []).forEach(ln => {
+		const li = document.querySelector(`#fft-pseudocode li[data-line="${ln}"]`);
+		if (li) li.classList.add('active');
+	});
+
+	document.querySelectorAll('#fft-history-body tr').forEach((tr, i) => {
+		tr.classList.toggle('history-active', i === idx);
+	});
+
+	if (s.type === 'done') {
+		fftSetStatus('done');
+		fftState.done = true;
+		const recon = ifftFromSpectrum(s.array);
+		const errs = recon.map((z, i) => Math.abs(z.re - fftState.signal[i].re));
+		const maxErr = Math.max(...errs);
+		const avgErr = errs.reduce((acc, v) => acc + v, 0) / Math.max(1, errs.length);
+		document.getElementById('fft-ifft-check').innerHTML =
+			`Max reconstruction error: <strong style="color:var(--green)">${maxErr.toExponential(3)}</strong><br>` +
+			`Average error: <strong style="color:var(--green)">${avgErr.toExponential(3)}</strong><br>` +
+			`First samples: ${recon.slice(0, Math.min(6, recon.length)).map(z => z.re.toFixed(3)).join(', ')}`;
+	}
+}
+
+function fftStepForward() {
+	const next = fftState.currentStep + 1;
+	if (next >= fftState.steps.length) {
+		fftPause();
+		fftSetStatus('done');
+		return;
+	}
+	fftRenderStep(next);
+}
+
+function fftJumpTo(idx) {
+	fftPause();
+	fftRenderStep(idx);
+	if (!fftState.done) fftSetStatus('paused');
+}
+
+function fftPlay() {
+	if (fftState.done || fftState.currentStep >= fftState.steps.length - 1) return;
+	fftState.playing = true;
+	fftSetStatus('playing');
+	document.getElementById('fft-btn-pause').disabled = false;
+	document.getElementById('fft-btn-play').disabled = true;
+
+	function tick() {
+		if (!fftState.playing) return;
+		if (fftState.currentStep >= fftState.steps.length - 1) {
+			fftPause();
+			fftSetStatus('done');
+			return;
+		}
+		fftStepForward();
+		fftState.playTimer = setTimeout(tick, SPEED_MAP[fftState.speed]);
+	}
+	fftState.playTimer = setTimeout(tick, SPEED_MAP[fftState.speed]);
+}
+
+function fftPause() {
+	fftState.playing = false;
+	if (fftState.playTimer) {
+		clearTimeout(fftState.playTimer);
+		fftState.playTimer = null;
+	}
+	if (fftState.status === 'playing') fftSetStatus('paused');
+	const playBtn = document.getElementById('fft-btn-play');
+	const pauseBtn = document.getElementById('fft-btn-pause');
+	if (playBtn) playBtn.disabled = fftState.done || fftState.steps.length === 0;
+	if (pauseBtn) pauseBtn.disabled = true;
+}
+
+function fftReset() {
+	fftPause();
+	fftState.steps = [];
+	fftState.currentStep = -1;
+	fftState.done = false;
+	document.getElementById('fft-step-cur').textContent = '0';
+	document.getElementById('fft-step-total').textContent = '0';
+	document.getElementById('fft-cnt-stage').textContent = '0';
+	document.getElementById('fft-cnt-bfly').textContent = '0';
+	document.getElementById('fft-cnt-mul').textContent = '0';
+	document.getElementById('fft-cnt-add').textContent = '0';
+	document.getElementById('fft-history-body').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:12px;">Build steps to see FFT history.</td></tr>';
+	drawLineChart('fft-time-chart', fftState.signal.map(z => z.re), '#38bdf8', 'x[n]');
+	drawBarChart('fft-freq-chart', new Array(fftState.n).fill(0));
+	document.getElementById('fft-butterfly-info').textContent = 'Signal ready. Click Build Steps to compute FFT stages.';
+	document.getElementById('fft-butterfly-worked').textContent = 'Build steps to see the numeric substitution for t = w·v, top = u + t, bottom = u − t.';
+	document.getElementById('fft-ifft-check').textContent = 'After completion, this panel shows IFFT(FFT(x)) reconstruction quality.';
+	renderButterflyCircuit(null);
+	document.querySelectorAll('#fft-pseudocode li').forEach(li => li.classList.remove('active'));
+	fftSetStatus('idle');
+	fftSetControlsReady(false);
+}
+
+function fftOnSpeedChange(val) {
+	fftState.speed = parseInt(val, 10);
+	document.getElementById('fft-speed-display').textContent = SPEED_LABELS[fftState.speed];
+	if (fftState.playing) {
+		fftPause();
+		fftPlay();
+	}
+}
+
+function applyPreset(name) {
+	const p = PRESETS[name];
+	if (!p) return;
+	document.getElementById('fft-signal-type').value = p.type;
+	document.getElementById('fft-n').value = String(p.n);
+	document.getElementById('fft-amp').value = String(p.amp);
+	document.getElementById('fft-freq').value = String(p.freq);
+	document.getElementById('fft-phase').value = String(p.phase);
+	document.getElementById('fft-offset').value = String(p.offset);
+	fftGenerateSignal();
+}
+
+function toggleNotes() {
+	const body = document.getElementById('notes-body');
+	const btn = document.getElementById('notes-toggle-btn');
+	if (!body || !btn) return;
+	const open = body.classList.toggle('open');
+	body.style.display = open ? 'block' : 'none';
+	btn.textContent = open ? 'Collapse ▲' : 'Expand ▼';
+}
+
+function attachEvents() {
+	document.getElementById('preset-sine').addEventListener('click', () => applyPreset('sine'));
+	document.getElementById('preset-square').addEventListener('click', () => applyPreset('square'));
+	document.getElementById('preset-chirp').addEventListener('click', () => applyPreset('chirp'));
+	document.getElementById('preset-impulse').addEventListener('click', () => applyPreset('impulse'));
+	document.getElementById('btn-generate').addEventListener('click', fftGenerateSignal);
+	document.getElementById('fft-btn-build').addEventListener('click', fftBuildSteps);
+	document.getElementById('fft-btn-step').addEventListener('click', fftStepForward);
+	document.getElementById('fft-btn-play').addEventListener('click', fftPlay);
+	document.getElementById('fft-btn-pause').addEventListener('click', fftPause);
+	document.getElementById('fft-btn-reset').addEventListener('click', fftReset);
+	document.getElementById('fft-speed-slider').addEventListener('input', (e) => fftOnSpeedChange(e.target.value));
+	document.getElementById('dft-n').addEventListener('change', (e) => onDftSizeChange(e.target.value));
+	document.getElementById('fft-history-body').addEventListener('click', (e) => {
+		const tr = e.target.closest('tr[data-index]');
+		if (!tr) return;
+		const idx = parseInt(tr.dataset.index, 10);
+		if (Number.isFinite(idx)) fftJumpTo(idx);
+	});
+}
+
+function init() {
+	attachEvents();
+	fftGenerateSignal();
+}
+
+init();
+</script>
+</body>
+</html>
