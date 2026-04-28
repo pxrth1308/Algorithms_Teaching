@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPTAS — Knapsack — BSD 404</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+	--bg: #0a0e1a;
+	--panel: #111827;
+	--panel2: #1a2236;
+	--panel3: #0f172a;
+	--border: #2d3748;
+	--border2: #374151;
+	--text: #e2e8f0;
+	--text-dim: #94a3b8;
+	--text-muted: #64748b;
+	--accent: #38bdf8;
+	--accent2: #0ea5e9;
+	--green: #4ade80;
+	--green2: #22c55e;
+	--amber: #fbbf24;
+	--amber2: #f59e0b;
+	--red: #f87171;
+	--red2: #ef4444;
+	--purple: #a78bfa;
+	--teal: #2dd4bf;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+	font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+	background: var(--bg);
+	color: var(--text);
+	min-height: 100vh;
+	font-size: 13px;
+}
+
+a { color: var(--accent); }
+
+#main-tool, #visualization, #lecture-notes { background: var(--bg); }
+
+header {
+	background: linear-gradient(135deg, #0f172a 0%, #1a2236 100%);
+	border-bottom: 1px solid var(--border);
+	padding: 14px 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+header h1 { font-size: 17px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; }
+header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
+.badge {
+	display: inline-block; padding: 2px 8px; border-radius: 9999px;
+	font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+	background: rgba(56,189,248,0.15); color: var(--accent);
+	border: 1px solid rgba(56,189,248,0.3); margin-left: 8px;
+}
+
+#lecture-notes { background: var(--bg); border-bottom: 1px solid var(--border); }
+.notes-header {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 10px 24px; cursor: pointer; user-select: none; gap: 12px;
+}
+.notes-header:hover { background: rgba(255,255,255,0.02); }
+.notes-header h2 { font-size: 13px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.3px; }
+.notes-toggle { font-size: 11px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 2px 8px; border-radius: 4px; }
+.notes-toggle:hover { background: rgba(56,189,248,0.1); }
+.notes-body { padding: 0 24px 20px; display: none; }
+.notes-body.open { display: block; }
+
+.algo-tabs {
+	display: flex; gap: 8px; padding: 10px 24px;
+	background: var(--panel3); border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.algo-tab {
+	padding: 7px 12px; border-radius: 9999px;
+	border: 1px solid var(--border2); background: var(--panel2);
+	color: var(--text-dim); font-size: 11px; font-weight: 700;
+	letter-spacing: 0.4px; cursor: pointer; transition: all 0.15s;
+}
+.algo-tab:hover { background: rgba(56,189,248,0.08); color: var(--text); }
+.algo-tab.active { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.45); color: var(--accent); }
+
+.roadmap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.roadmap a {
+	padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
+	background: rgba(56,189,248,0.1); color: var(--accent);
+	border: 1px solid rgba(56,189,248,0.2); text-decoration: none; white-space: nowrap;
+}
+.roadmap a:hover { background: rgba(56,189,248,0.2); }
+
+.notes-section { margin: 20px 0; }
+.notes-section h3 {
+	font-size: 14px; font-weight: 600; color: var(--accent);
+	margin-bottom: 8px; border-left: 3px solid var(--accent); padding-left: 10px;
+}
+.notes-section p { color: var(--text-dim); line-height: 1.65; margin-bottom: 8px; }
+.notes-section ul { margin: 8px 0 8px 20px; color: var(--text-dim); line-height: 1.85; }
+.notes-section li { margin-bottom: 4px; }
+.notes-section code {
+	background: var(--panel2); color: var(--teal);
+	padding: 1px 5px; border-radius: 3px;
+	font-family: "Consolas", monospace; font-size: 11px;
+}
+
+.key-concept {
+	background: rgba(56,189,248,0.06);
+	border: 1px solid rgba(56,189,248,0.2);
+	border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+}
+.key-concept .kc-title {
+	font-size: 11px; font-weight: 700; color: var(--accent);
+	letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;
+}
+.key-concept p { color: var(--text-dim); margin: 0; font-size: 12px; line-height: 1.65; }
+
+.highlight-box {
+	background: rgba(251,191,36,0.07);
+	border: 1px solid rgba(251,191,36,0.25);
+	border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+}
+.highlight-box p { color: var(--text-dim); margin: 0; font-size: 12px; line-height: 1.65; }
+.highlight-box strong { color: var(--amber); }
+
+.danger-box {
+	background: rgba(248,113,113,0.07);
+	border: 1px solid rgba(248,113,113,0.25);
+	border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+}
+.danger-box p { color: var(--text-dim); margin: 0; font-size: 12px; line-height: 1.65; }
+.danger-box strong { color: var(--red); }
+
+.worked-example {
+	background: var(--panel2);
+	border: 1px solid var(--border);
+	border-radius: 6px; padding: 14px; margin: 10px 0;
+	font-family: "Consolas", monospace; font-size: 11px;
+	color: var(--text-dim); white-space: pre;
+	overflow-x: auto; line-height: 1.55;
+}
+
+.complexity-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+.complexity-table th, .complexity-table td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.complexity-table th { background: var(--panel2); color: var(--accent); font-weight: 600; }
+.complexity-table td { color: var(--text-dim); }
+.complexity-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.formula {
+	font-family: "Consolas", monospace; font-size: 13px;
+	color: var(--teal); background: var(--panel3);
+	border: 1px dashed var(--border2);
+	padding: 8px 10px; border-radius: 5px; margin: 6px 0;
+}
+
+#main-tool { display: flex; min-height: calc(100vh - 100px); gap: 0; }
+
+#controls {
+	width: 420px; min-width: 360px;
+	background: var(--panel); border-right: 1px solid var(--border);
+	padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
+}
+.ctrl-section {
+	background: var(--panel2); border: 1px solid var(--border);
+	border-radius: 8px; padding: 12px;
+}
+.ctrl-section-title {
+	font-size: 10px; font-weight: 700; color: var(--text-muted);
+	letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+}
+
+.ctrl-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.ctrl-btn {
+	padding: 7px 10px; border-radius: 6px;
+	background: var(--panel3); border: 1px solid var(--border2);
+	color: var(--text-dim); cursor: pointer;
+	font-size: 11px; font-weight: 600; transition: all 0.15s;
+}
+.ctrl-btn:hover { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: var(--text); }
+.ctrl-btn.primary { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.4); color: var(--accent); }
+.ctrl-btn.primary:hover { background: rgba(56,189,248,0.25); }
+.ctrl-btn.secondary { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.35); color: var(--accent); }
+.ctrl-btn.danger { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: var(--red); }
+
+.eq-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.eq-row input {
+	width: 84px; padding: 5px 8px;
+	border-radius: 5px; border: 1px solid var(--border2);
+	background: var(--panel3); color: var(--text);
+	font-size: 12px; font-family: "JetBrains Mono", monospace;
+}
+.eq-row input:focus { outline: none; border-color: var(--accent); background: rgba(56,189,248,0.05); }
+.eq-label { color: var(--text-dim); font-size: 12px; }
+
+.speed-row { display: flex; align-items: center; gap: 8px; }
+.speed-row label { font-size: 12px; color: var(--text-dim); flex: 1; }
+.speed-value { font-size: 12px; color: var(--accent); font-weight: 600; min-width: 32px; text-align: right; }
+input[type=range] {
+	flex: 2; appearance: none; -webkit-appearance: none;
+	height: 4px; background: var(--border2); border-radius: 2px; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+	-webkit-appearance: none; width: 14px; height: 14px;
+	border-radius: 50%; background: var(--accent); cursor: pointer;
+	box-shadow: 0 0 0 2px rgba(56,189,248,0.35);
+}
+
+.status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.status-pill {
+	display: inline-flex; align-items: center; gap: 6px;
+	padding: 2px 9px; border-radius: 9999px;
+	font-size: 10px; font-weight: 700;
+	text-transform: uppercase; letter-spacing: 0.6px;
+}
+.status-idle { background: rgba(100,116,139,0.15); color: var(--text-muted); border: 1px solid rgba(100,116,139,0.3); }
+.status-ready { background: rgba(56,189,248,0.1); color: var(--accent); border: 1px solid rgba(56,189,248,0.3); }
+.status-playing { background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+.status-paused { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+.status-done { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+.status-error { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+
+.counters-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.counter-box {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 8px; text-align: center;
+}
+.counter-val { font-size: 20px; font-weight: 700; color: var(--accent); font-family: "Consolas", monospace; }
+.counter-label { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 2px; }
+
+.kv-list { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.kv-item {
+	display: flex; justify-content: space-between; align-items: center;
+	background: var(--panel3); border: 1px solid var(--border);
+	padding: 6px 8px; border-radius: 6px;
+	font-family: "JetBrains Mono", monospace; font-size: 11px;
+}
+.kv-item span { color: var(--text-dim); }
+.kv-item strong { color: var(--text); }
+
+.text-area {
+	width: 100%; min-height: 100px;
+	background: var(--panel3); border: 1px solid var(--border2);
+	color: var(--text); border-radius: 6px; padding: 8px;
+	font-family: "Consolas", monospace; font-size: 11px;
+	resize: vertical;
+}
+.text-area:focus { outline: none; border-color: var(--accent); background: rgba(56,189,248,0.05); }
+.input-hint { font-size: 10px; color: var(--text-muted); }
+
+#visualization {
+	flex: 1; padding: 16px;
+	display: flex; flex-direction: column; gap: 14px;
+	overflow-y: auto; min-width: 0;
+}
+
+.legend-bar {
+	display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 10px 14px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0; }
+
+.viz-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.panel {
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 14px;
+	flex: 1; min-width: 280px;
+}
+.panel-title {
+	font-size: 11px; font-weight: 700; color: var(--text-muted);
+	letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px;
+}
+
+/* Items table */
+.items-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: "Consolas", monospace; }
+.items-table th { background: var(--panel3); color: var(--text-muted); font-weight: 600; padding: 5px 8px; text-align: left; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; }
+.items-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); color: var(--text-dim); }
+.items-table tr.selected td { background: rgba(74,222,128,0.08); color: var(--green); font-weight: 600; }
+.items-table tr.active td { background: rgba(245,158,11,0.10); color: var(--amber); }
+.items-table .v-scaled { color: var(--purple); font-weight: 700; }
+
+/* DP table */
+.dp-wrap {
+	overflow: auto;
+	max-height: 460px;
+	background: var(--panel3);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	padding: 4px;
+}
+.dp-table {
+	border-collapse: collapse;
+	font-family: "Consolas", monospace; font-size: 10px;
+}
+.dp-table th, .dp-table td {
+	min-width: 30px;
+	height: 22px;
+	padding: 0 4px;
+	text-align: center;
+	border: 1px solid var(--border);
+	color: var(--text-dim);
+	background: var(--panel2);
+	font-weight: 500;
+}
+.dp-table th {
+	color: var(--text-muted);
+	background: var(--panel3);
+	font-size: 9px;
+	font-weight: 600;
+	letter-spacing: 0.3px;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+.dp-table th.row-head { left: 0; z-index: 3; }
+.dp-table td.row-label {
+	background: var(--panel3);
+	color: var(--text-muted);
+	font-weight: 600;
+	position: sticky;
+	left: 0;
+	z-index: 1;
+	font-size: 10px;
+}
+.dp-table td.cell-filled { background: rgba(56,189,248,0.06); color: var(--text); }
+.dp-table td.cell-active { background: rgba(245,158,11,0.30); color: var(--amber); border-color: rgba(245,158,11,0.7); font-weight: 700; }
+.dp-table td.cell-traceback { background: rgba(74,222,128,0.18); color: var(--green); border-color: rgba(74,222,128,0.55); font-weight: 700; }
+.dp-table td.cell-best { background: rgba(167,139,250,0.20); color: var(--purple); border-color: rgba(167,139,250,0.6); font-weight: 700; }
+.dp-table td.cell-inf { color: var(--text-muted); }
+
+/* Comparison panel */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.compare-card {
+	background: var(--panel3);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	padding: 10px;
+}
+.compare-card.opt { border-color: rgba(56,189,248,0.3); }
+.compare-card.fptas { border-color: rgba(74,222,128,0.3); }
+.compare-card h5 {
+	font-size: 11px; font-weight: 700;
+	letter-spacing: 0.6px; text-transform: uppercase;
+	margin-bottom: 6px;
+}
+.compare-card.opt h5 { color: var(--accent); }
+.compare-card.fptas h5 { color: var(--green); }
+.compare-card .row {
+	display: flex; justify-content: space-between;
+	font-family: "Consolas", monospace; font-size: 11px;
+	color: var(--text-dim); padding: 2px 0;
+}
+.compare-card .row strong { color: var(--text); }
+
+.ratio-bar-wrap { margin-top: 10px; }
+.ratio-bar-track {
+	background: var(--panel3);
+	border: 1px solid var(--border);
+	border-radius: 9999px;
+	height: 16px;
+	overflow: hidden;
+	position: relative;
+}
+.ratio-bar-fill {
+	height: 100%;
+	background: linear-gradient(90deg, rgba(74,222,128,0.7), rgba(74,222,128,1));
+	transition: width 0.4s ease;
+}
+.ratio-bar-fill.below-bound { background: linear-gradient(90deg, rgba(248,113,113,0.7), rgba(248,113,113,1)); }
+.ratio-tag {
+	display: inline-block; padding: 4px 10px; border-radius: 9999px;
+	background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.4);
+	color: var(--purple); font-size: 12px; font-weight: 700;
+	font-family: "Consolas", monospace; margin-top: 6px;
+}
+
+/* Pseudocode */
+.pseudocode {
+	font-family: "Consolas", monospace; font-size: 12px;
+	background: var(--panel3); border-radius: 6px;
+	padding: 10px 12px; list-style: none; line-height: 1.85;
+}
+.pseudocode li {
+	display: flex; gap: 10px; padding: 2px 6px;
+	border-radius: 3px; cursor: default;
+	transition: background 0.15s; position: relative;
+}
+.pseudocode li:hover { background: rgba(255,255,255,0.04); }
+.pseudocode li.active { background: rgba(56,189,248,0.12); }
+.pseudo-ln { color: var(--text-muted); user-select: none; min-width: 18px; text-align: right; }
+.pseudo-code { color: var(--text-dim); }
+.pseudocode li.active .pseudo-code { color: var(--text); }
+
+.pseudo-tooltip {
+	display: none; position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
+	background: var(--panel2); border: 1px solid var(--accent);
+	border-radius: 5px; padding: 6px 10px; font-size: 11px; color: var(--text-dim);
+	z-index: 10; pointer-events: none; max-width: 280px; white-space: normal; margin-left: 8px;
+}
+.pseudocode li:hover .pseudo-tooltip { display: block; }
+
+.explanation-panel {
+	background: var(--panel); border: 1px solid var(--border);
+	border-radius: 8px; padding: 14px;
+}
+#step-explanation {
+	background: var(--panel3); border: 1px solid var(--border);
+	border-radius: 6px; padding: 12px;
+	font-size: 12px; color: var(--text-dim);
+	line-height: 1.6; min-height: 100px;
+}
+#step-explanation .exp-title { font-weight: 700; color: var(--text); margin-bottom: 6px; font-size: 13px; }
+#step-explanation .exp-formula { font-family: "Consolas", monospace; color: var(--teal); margin: 4px 0; }
+
+.history-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.history-scroll { max-height: 200px; overflow-y: auto; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: "Consolas", monospace; }
+.history-table th {
+	background: var(--panel3); color: var(--text-muted);
+	font-weight: 600; font-size: 10px; letter-spacing: 0.5px;
+	text-transform: uppercase; padding: 5px 8px; text-align: left;
+	position: sticky; top: 0; z-index: 1;
+}
+.history-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }
+.history-table tr:hover td { background: rgba(255,255,255,0.03); color: var(--text); }
+.history-table tr.history-active td { background: rgba(56,189,248,0.08); color: var(--accent); }
+
+@media (max-width: 980px) {
+	#main-tool { flex-direction: column; }
+	#controls { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); }
+	.compare-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+	<div>
+		<h1>FPTAS — Knapsack<span class="badge">CLO-3</span></h1>
+		<div class="meta">BSD 404 — Algorithms II &nbsp;|&nbsp; Approximation Schemes</div>
+	</div>
+	<div class="meta">Student: Aggarwal, Parth &nbsp;|&nbsp; ID: 20220001200</div>
+</header>
+
+<nav class="algo-tabs">
+	<button class="algo-tab" onclick="location.href='dft_fft_circuits.html'">Part 1: DFT / FFT Circuits</button>
+	<button class="algo-tab" onclick="location.href='ChineseRemainder_RSA.html'">Part 2: CRT / RSA-CRT</button>
+	<button class="algo-tab" onclick="location.href='ClosestPairPoints.html'">Part 3: Closest Pair of Points</button>
+	<button class="algo-tab active" onclick="location.href='FPTAS.html'">Part 4: FPTAS</button>
+</nav>
+
+<section id="lecture-notes">
+	<div class="notes-header" onclick="toggleNotes()">
+		<h2>📚 Lecture Notes — FPTAS for 0/1 Knapsack</h2>
+		<button class="notes-toggle" type="button" id="notes-toggle-btn">Collapse ▲</button>
+	</div>
+	<div class="notes-body open" id="notes-body">
+		<div class="roadmap">
+			<a href="#sec1">1. The Problem</a>
+			<a href="#sec2">2. NP-Hardness</a>
+			<a href="#sec3">3. Scaling Trick</a>
+			<a href="#sec4">4. Scaled DP</a>
+			<a href="#sec5">5. (1−ε) Guarantee</a>
+			<a href="#sec6">6. PTAS vs FPTAS</a>
+			<a href="#sec7">7. Complexity</a>
+			<a href="#sec8">8. Worked Example</a>
+		</div>
+
+		<div class="notes-section" id="sec1">
+			<h3>1 — The Problem (0/1 Knapsack)</h3>
+			<p>Given <code>n</code> items with values <code>v_i</code> and weights <code>w_i</code>, and a capacity <code>W</code>, choose a subset <code>S</code> with <code>∑w_i ≤ W</code> that maximizes <code>∑v_i</code>.</p>
+			<div class="key-concept">
+				<div class="kc-title">Goal of an FPTAS</div>
+				<p>Return a solution with value at least <strong>(1 − ε) · OPT</strong> in time polynomial in both <code>n</code> and <code>1/ε</code>.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec2">
+			<h3>2 — NP-Hardness &amp; Pseudo-polynomial DP</h3>
+			<p>Knapsack is NP-hard, so we don't expect a polynomial-time exact algorithm. The classical DP <code>dp[i][V] = min weight to reach value V</code> runs in <code>O(n · V_total)</code>, which is <em>pseudo-polynomial</em> — fast only when values are small integers.</p>
+		</div>
+
+		<div class="notes-section" id="sec3">
+			<h3>3 — The Scaling Trick</h3>
+			<p>Shrink values so the DP table becomes truly polynomial. Pick a scaling factor <code>K = ε · v_max / n</code>, then replace each value with <code>v'_i = ⌊v_i / K⌋</code>.</p>
+			<div class="formula">v'_i = ⌊v_i / K⌋   with   K = ε · v_max / n</div>
+			<p>Each scaled value is bounded by <code>v_max / K = n/ε</code>, so the total scaled value is at most <code>n²/ε</code> — independent of the original value magnitudes.</p>
+		</div>
+
+		<div class="notes-section" id="sec4">
+			<h3>4 — Scaled DP (with Exact DP for Comparison)</h3>
+			<p>Run the value-indexed DP on scaled values:</p>
+			<div class="formula">dp[i][V] = min weight to reach scaled value V using items 1..i</div>
+			<ul>
+				<li>Base: <code>dp[0][0] = 0</code>, <code>dp[0][V&gt;0] = ∞</code>.</li>
+				<li>Recurrence: <code>dp[i][V] = min(dp[i−1][V],&nbsp; dp[i−1][V−v'_i] + w_i)</code>.</li>
+				<li>Answer: largest <code>V</code> with <code>dp[n][V] ≤ W</code>; recover items by traceback.</li>
+			</ul>
+			<div class="key-concept">
+				<div class="kc-title">Side-by-side comparison</div>
+				<p>The tool fills the <strong>exact</strong> DP <code>dp[i][w] = max value with capacity ≤ w</code> on the <em>left</em> and the <strong>scaled FPTAS</strong> DP on the <em>right</em>, in lockstep per item. Compare the two table widths: the exact DP has <code>W+1</code> columns (depends on capacity), while the scaled DP has <code>V_total+1 ≤ n²/ε + 1</code> columns — bounded purely in terms of <code>n</code> and <code>1/ε</code>.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec5">
+			<h3>5 — The (1 − ε) Guarantee</h3>
+			<div class="key-concept">
+				<div class="kc-title">Approximation bound</div>
+				<p>Each value loses at most <code>K</code> when floored, so the total value lost is at most <code>n·K = ε·v_max ≤ ε·OPT</code>. Therefore the recovered solution achieves at least <code>(1 − ε) · OPT</code>.</p>
+			</div>
+			<div class="highlight-box">
+				<p><strong>Tradeoff:</strong> smaller <code>ε</code> → better approximation but larger DP table → slower runtime. Larger <code>ε</code> → faster but coarser answer.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec6">
+			<h3>6 — PTAS vs FPTAS</h3>
+			<p>Both produce <code>(1−ε)</code>-approximations:</p>
+			<ul>
+				<li><strong>PTAS:</strong> polynomial in <code>n</code> for any fixed <code>ε</code> (<code>1/ε</code> may appear in the exponent).</li>
+				<li><strong>FPTAS:</strong> polynomial in both <code>n</code> and <code>1/ε</code> — strictly stronger.</li>
+			</ul>
+			<p>Knapsack admits an FPTAS; many other NP-hard problems (e.g. Bin Packing) admit only a PTAS.</p>
+		</div>
+
+		<div class="notes-section" id="sec7">
+			<h3>7 — Complexity</h3>
+			<table class="complexity-table">
+				<tr><th>Method</th><th>Time</th><th>Notes</th></tr>
+				<tr><td>Brute force (subsets)</td><td style="color:var(--red)">O(2ⁿ)</td><td>Exact, exponential</td></tr>
+				<tr><td>Pseudo-polynomial DP</td><td>O(n · V_total)</td><td>Exact, fast only for small values</td></tr>
+				<tr><td>FPTAS</td><td style="color:var(--green)">O(n³ / ε)</td><td>(1−ε)-approximation</td></tr>
+			</table>
+		</div>
+
+		<div class="notes-section" id="sec8">
+			<h3>8 — Worked Example</h3>
+			<div class="worked-example">Items (v, w): (6,4), (8,5), (5,3)
+Capacity W = 10,  ε = 0.2
+
+K = ε · v_max / n = 0.2 · 8 / 3 ≈ 0.533
+v' = ⌊v/K⌋ → (11, 15, 9)
+
+DP on scaled values:
+  Best scaled total ≤ 10 weight  →  V* = 26  (items 1+2 = 11+15)
+  Recovered set: {(6,4), (8,5)}  weight = 9, value = 14
+
+Optimal exact value = 14 (same set).
+FPTAS / OPT = 14 / 14 = 100% ≥ (1 − ε) = 80%  ✓</div>
+		</div>
+	</div>
+</section>
+
+<main id="main-tool">
+	<aside id="controls">
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Preset Examples</div>
+			<div class="ctrl-buttons">
+				<button class="ctrl-btn secondary" type="button" id="preset-small">Small Items</button>
+				<button class="ctrl-btn" type="button" id="preset-balanced">Balanced Set</button>
+				<button class="ctrl-btn" type="button" id="preset-tight">Tight Epsilon</button>
+				<button class="ctrl-btn" type="button" id="preset-loose">Loose Epsilon</button>
+			</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Custom Input</div>
+			<textarea class="text-area" id="items-input" spellcheck="false">6,4
+8,5
+5,3</textarea>
+			<div class="eq-row" style="margin-top: 8px;">
+				<span class="eq-label">Capacity</span>
+				<input type="number" id="capacity-input" value="10" min="1">
+				<span class="eq-label">ε</span>
+				<input type="number" id="epsilon-input" value="0.2" step="0.05" min="0.05" max="0.99">
+			</div>
+			<div class="ctrl-buttons" style="margin-top: 8px;">
+				<button class="ctrl-btn primary" type="button" id="apply-items">Apply Items</button>
+			</div>
+			<div class="input-hint">One item per line as <code>value,weight</code>. ε between 0.05 and 0.99.</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Animation Controls</div>
+			<div class="speed-row">
+				<label for="speed">Speed</label>
+				<input type="range" id="speed" min="0" max="4" step="1" value="3">
+				<div class="speed-value" id="speed-value">2.0x</div>
+			</div>
+			<div class="ctrl-buttons" style="margin-top: 8px;">
+				<button class="ctrl-btn primary" type="button" id="btn-build">⚙ Build Steps</button>
+				<button class="ctrl-btn" type="button" id="btn-step">▶| Step</button>
+				<button class="ctrl-btn" type="button" id="btn-play">▶ Play</button>
+				<button class="ctrl-btn" type="button" id="btn-pause">⏸ Pause</button>
+				<button class="ctrl-btn danger" type="button" id="btn-reset">↺ Reset</button>
+			</div>
+			<div class="status-row" style="margin-top: 8px;">
+				<div class="status-pill status-idle" id="status-pill">Idle</div>
+				<div class="input-hint" id="step-counter">Step 0 / 0</div>
+			</div>
+			<div class="input-hint" id="status-msg"></div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Statistics</div>
+			<div class="counters-grid">
+				<div class="counter-box">
+					<div class="counter-val" id="cnt-steps">0</div>
+					<div class="counter-label">Steps</div>
+				</div>
+				<div class="counter-box">
+					<div class="counter-val" id="cnt-K">0</div>
+					<div class="counter-label">K</div>
+				</div>
+				<div class="counter-box">
+					<div class="counter-val" id="cnt-cells">0</div>
+					<div class="counter-label">DP cells</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="ctrl-section">
+			<div class="ctrl-section-title">Run Summary</div>
+			<div class="kv-list">
+				<div class="kv-item"><span>K = ε·v_max/n</span><strong id="out-K">—</strong></div>
+				<div class="kv-item"><span>Total scaled value V_total</span><strong id="out-vtotal">—</strong></div>
+				<div class="kv-item"><span>Selected items</span><strong id="out-selected">—</strong></div>
+				<div class="kv-item"><span>FPTAS value</span><strong id="out-fptas">—</strong></div>
+				<div class="kv-item"><span>Optimal value</span><strong id="out-opt">—</strong></div>
+				<div class="kv-item"><span>Bound (1 − ε) · OPT</span><strong id="out-bound">—</strong></div>
+			</div>
+		</div>
+	</aside>
+
+	<section id="visualization">
+		<div class="legend-bar">
+			<span style="font-size:10px; color:var(--text-muted); font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-right:4px;">Legend:</span>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--accent); background: rgba(56,189,248,0.2);"></div>Filled cell</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--amber); background: rgba(245,158,11,0.3);"></div>Active update</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--purple); background: rgba(167,139,250,0.2);"></div>Best V* / OPT</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--green); background: rgba(74,222,128,0.18);"></div>Traceback path</div>
+			<div class="legend-item"><div class="legend-swatch" style="border-color: var(--text-muted); background: var(--panel2);"></div>Unreachable (∞)</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel" style="flex: 1.2;">
+				<div class="panel-title">Items (Original vs Scaled)</div>
+				<table class="items-table" id="items-table">
+					<thead>
+						<tr><th>#</th><th>v</th><th>w</th><th>v' = ⌊v/K⌋</th><th>Status</th></tr>
+					</thead>
+					<tbody id="items-body"></tbody>
+				</table>
+			</div>
+			<div class="panel">
+				<div class="panel-title">FPTAS vs Optimal</div>
+				<div class="compare-grid">
+					<div class="compare-card opt">
+						<h5>Exact OPT</h5>
+						<div class="row"><span>Value</span><strong id="cmp-opt-value">—</strong></div>
+						<div class="row"><span>Time</span><strong>O(n·W)</strong></div>
+					</div>
+					<div class="compare-card fptas">
+						<h5>FPTAS</h5>
+						<div class="row"><span>Value</span><strong id="cmp-fptas-value">—</strong></div>
+						<div class="row"><span>Time</span><strong>O(n³/ε)</strong></div>
+					</div>
+				</div>
+				<div class="ratio-bar-wrap">
+					<div class="row" style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); margin-bottom:4px;">
+						<span>FPTAS / OPT ratio</span><strong id="cmp-ratio-label">—</strong>
+					</div>
+					<div class="ratio-bar-track"><div class="ratio-bar-fill" id="cmp-ratio-bar" style="width:0%"></div></div>
+					<span class="ratio-tag" id="cmp-bound-tag">guarantee ≥ (1 − ε)</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel">
+			<div class="panel-title">Value Scaling — <span style="color:var(--text-dim); font-weight:normal;">original v_i (blue) vs scaled v'_i = ⌊v_i / K⌋ (purple)</span></div>
+			<svg id="scaling-chart" viewBox="0 0 600 200" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; max-height:260px; background:var(--panel3); border:1px solid var(--border); border-radius:6px; display:block;"></svg>
+			<div class="input-hint" id="scaling-hint" style="margin-top:6px;">Bar lengths illustrate how K = ε·v_max/n compresses the value axis. Smaller ε keeps bars long (DP table grows); larger ε compresses bars (DP table shrinks).</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel">
+				<div class="panel-title">Exact DP — <code style="color:var(--text-dim); font-family:'Consolas',monospace; font-size:11px; background:none;">dp[i][w] = max value with capacity ≤ w</code> &nbsp;<span style="color:var(--text-muted); font-weight:normal;">(reference, original values)</span></div>
+				<div class="dp-wrap" id="dp-exact-wrap">
+					<div style="color:var(--text-muted); padding: 10px;">Build steps to populate the table.</div>
+				</div>
+			</div>
+			<div class="panel">
+				<div class="panel-title">Scaled FPTAS DP — <code style="color:var(--text-dim); font-family:'Consolas',monospace; font-size:11px; background:none;">dp[i][V] = min weight to reach scaled value V</code></div>
+				<div class="dp-wrap" id="dp-scaled-wrap">
+					<div style="color:var(--text-muted); padding: 10px;">Build steps to populate the table.</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="viz-row">
+			<div class="panel">
+				<div class="panel-title">Pseudocode</div>
+				<ul class="pseudocode" id="fptas-pseudocode">
+					<li data-line="1"><span class="pseudo-ln">1</span><span class="pseudo-code">K = ε · v_max / n</span><div class="pseudo-tooltip">Scaling factor. Smaller K → finer accuracy but bigger table.</div></li>
+					<li data-line="2"><span class="pseudo-ln">2</span><span class="pseudo-code">v'_i = ⌊v_i / K⌋  for all i</span><div class="pseudo-tooltip">Replace original values with scaled integer values.</div></li>
+					<li data-line="3"><span class="pseudo-ln">3</span><span class="pseudo-code">dp[i][V] = min weight reaching value V</span><div class="pseudo-tooltip">Value-indexed DP table; dp[0][0]=0 and dp[0][V>0]=∞.</div></li>
+					<li data-line="4"><span class="pseudo-ln">4</span><span class="pseudo-code">dp[i][V] = min(dp[i−1][V], dp[i−1][V − v'_i] + w_i)</span><div class="pseudo-tooltip">Either skip item i, or take it and pay weight w_i.</div></li>
+					<li data-line="5"><span class="pseudo-ln">5</span><span class="pseudo-code">V* = max V with dp[n][V] ≤ W</span><div class="pseudo-tooltip">Largest reachable scaled value within the capacity.</div></li>
+					<li data-line="6"><span class="pseudo-ln">6</span><span class="pseudo-code">traceback to recover items</span><div class="pseudo-tooltip">Walk dp backwards: take item i if dp[i][V] used the "take" branch.</div></li>
+					<li data-line="7"><span class="pseudo-ln">7</span><span class="pseudo-code">return chosen items (value ≥ (1−ε)·OPT)</span><div class="pseudo-tooltip">Reported solution is guaranteed within (1−ε) of the exact optimum.</div></li>
+					<li data-line="8"><span class="pseudo-ln">8</span><span class="pseudo-code">// Reference: exact DP — dp[i][w] = max(dp[i−1][w], dp[i−1][w−w_i] + v_i)</span><div class="pseudo-tooltip">Pseudo-polynomial exact DP shown left for visual comparison; FPTAS uses lines 1–7.</div></li>
+				</ul>
+			</div>
+			<div class="explanation-panel" style="flex:1; min-width: 280px;">
+				<div class="panel-title">Step Explanation</div>
+				<div id="step-explanation">
+					<div class="exp-title">Waiting for steps</div>
+					<p>Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to walk through the FPTAS pipeline.</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="history-panel">
+			<div class="panel-title">Step History <span style="color:var(--text-muted);font-weight:normal;">(click to jump)</span></div>
+			<div class="history-scroll">
+				<table class="history-table">
+					<thead>
+						<tr><th>#</th><th>Action</th></tr>
+					</thead>
+					<tbody id="history-body"></tbody>
+				</table>
+			</div>
+		</div>
+	</section>
+</main>
+
+<script>
+const SPEED_MAP = [2000, 1000, 500, 250, 100];
+const SPEED_LABELS = ["0.25x", "0.5x", "1.0x", "2.0x", "4.0x"];
+
+const PRESETS = {
+	small: { items: [{v:6,w:4},{v:8,w:5},{v:5,w:3}], capacity: 10, epsilon: 0.2 },
+	balanced: { items: [{v:10,w:6},{v:7,w:4},{v:12,w:7},{v:6,w:3}], capacity: 12, epsilon: 0.25 },
+	tight: { items: [{v:9,w:5},{v:8,w:4},{v:7,w:4},{v:6,w:3}], capacity: 11, epsilon: 0.1 },
+	loose: { items: [{v:9,w:5},{v:8,w:4},{v:7,w:4},{v:6,w:3}], capacity: 11, epsilon: 0.5 }
+};
+
+const state = {
+	items: PRESETS.small.items.map((i) => ({ ...i })),
+	capacity: PRESETS.small.capacity,
+	epsilon: PRESETS.small.epsilon,
+	steps: [],
+	stepIndex: 0,
+	playing: false,
+	timer: null,
+	speedIndex: 3,
+	speedMs: SPEED_MAP[3],
+	K: 0,
+	scaled: [],
+	Vtotal: 0,
+	dp: [],
+	bestV: 0,
+	selected: [],
+	opt: 0,
+	fptas: 0
+};
+
+const els = {
+	presetSmall: document.getElementById("preset-small"),
+	presetBalanced: document.getElementById("preset-balanced"),
+	presetTight: document.getElementById("preset-tight"),
+	presetLoose: document.getElementById("preset-loose"),
+	itemsInput: document.getElementById("items-input"),
+	capacityInput: document.getElementById("capacity-input"),
+	epsilonInput: document.getElementById("epsilon-input"),
+	applyItems: document.getElementById("apply-items"),
+	speed: document.getElementById("speed"),
+	speedValue: document.getElementById("speed-value"),
+	build: document.getElementById("btn-build"),
+	play: document.getElementById("btn-play"),
+	pause: document.getElementById("btn-pause"),
+	step: document.getElementById("btn-step"),
+	reset: document.getElementById("btn-reset"),
+	statusPill: document.getElementById("status-pill"),
+	statusMsg: document.getElementById("status-msg"),
+	stepCounter: document.getElementById("step-counter"),
+	cntSteps: document.getElementById("cnt-steps"),
+	cntK: document.getElementById("cnt-K"),
+	cntCells: document.getElementById("cnt-cells"),
+	pseudocode: document.getElementById("fptas-pseudocode"),
+	stepExplanation: document.getElementById("step-explanation"),
+	historyBody: document.getElementById("history-body"),
+	itemsBody: document.getElementById("items-body"),
+	scalingChart: document.getElementById("scaling-chart"),
+	dpExactWrap: document.getElementById("dp-exact-wrap"),
+	dpScaledWrap: document.getElementById("dp-scaled-wrap"),
+	outK: document.getElementById("out-K"),
+	outVtotal: document.getElementById("out-vtotal"),
+	outSelected: document.getElementById("out-selected"),
+	outFptas: document.getElementById("out-fptas"),
+	outOpt: document.getElementById("out-opt"),
+	outBound: document.getElementById("out-bound"),
+	cmpOptValue: document.getElementById("cmp-opt-value"),
+	cmpFptasValue: document.getElementById("cmp-fptas-value"),
+	cmpRatioBar: document.getElementById("cmp-ratio-bar"),
+	cmpRatioLabel: document.getElementById("cmp-ratio-label"),
+	cmpBoundTag: document.getElementById("cmp-bound-tag")
+};
+
+function toggleNotes() {
+	const body = document.getElementById("notes-body");
+	const btn = document.getElementById("notes-toggle-btn");
+	if (!body || !btn) return;
+	const open = body.classList.toggle("open");
+	body.style.display = open ? "block" : "none";
+	btn.textContent = open ? "Collapse ▲" : "Expand ▼";
+}
+
+function setStatus(type, message) {
+	els.statusPill.className = "status-pill";
+	const map = { idle: "status-idle", ready: "status-ready", playing: "status-playing", paused: "status-paused", done: "status-done", error: "status-error" };
+	const labels = { idle: "Idle", ready: "Ready", playing: "Playing", paused: "Paused", done: "Done", error: "Error" };
+	els.statusPill.classList.add(map[type] || "status-ready");
+	els.statusPill.textContent = labels[type] || "Ready";
+	els.statusMsg.textContent = message || "";
+}
+
+function setSpeed(index) {
+	state.speedIndex = index;
+	state.speedMs = SPEED_MAP[index];
+	els.speedValue.textContent = SPEED_LABELS[index];
+}
+
+function parseItems(text) {
+	const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+	const items = [];
+	for (const line of lines) {
+		const parts = line.split(/\s*,\s*/);
+		if (parts.length !== 2) return null;
+		const v = Number(parts[0]);
+		const w = Number(parts[1]);
+		if (!Number.isFinite(v) || !Number.isFinite(w) || v < 0 || w <= 0) return null;
+		items.push({ v, w });
+	}
+	return items;
+}
+
+function buildSteps(items, capacity, epsilon) {
+	const n = items.length;
+	if (n === 0) return { steps: [] };
+
+	const vmax = Math.max(...items.map((i) => i.v));
+	const K = vmax > 0 ? (epsilon * vmax) / n : 1;
+	const scaled = items.map((i) => Math.floor(i.v / (K || 1)));
+	const Vtotal = scaled.reduce((a, b) => a + b, 0);
+	const W = capacity;
+
+	const steps = [];
+
+	const dpExact = Array.from({ length: n + 1 }, () => new Array(W + 1).fill(0));
+	const dpScaled = Array.from({ length: n + 1 }, () => new Array(Vtotal + 1).fill(Infinity));
+	dpScaled[0][0] = 0;
+
+	steps.push({
+		type: "scale_K",
+		line: 1,
+		label: `K = ε · v_max / n = ${epsilon} · ${vmax} / ${n} = ${K.toFixed(3)}`,
+		desc: `Pick the scaling factor. Smaller K means a finer (slower) approximation; larger K means coarser (faster).`,
+		K,
+		dpExact: cloneDp(dpExact),
+		dpScaled: cloneDp(dpScaled)
+	});
+
+	steps.push({
+		type: "scale_values",
+		line: 2,
+		label: `Scale values: v' = [${scaled.join(", ")}]`,
+		desc: `Replace each v_i with ⌊v_i / K⌋. Total scaled value V_total = ${Vtotal}. Exact DP (left) is indexed by capacity w ∈ [0, ${W}]; scaled FPTAS DP (right) is indexed by scaled value V ∈ [0, ${Vtotal}].`,
+		scaled, K, Vtotal,
+		dpExact: cloneDp(dpExact),
+		dpScaled: cloneDp(dpScaled)
+	});
+
+	steps.push({
+		type: "dp_init",
+		line: 3,
+		label: `Initialize both DP tables`,
+		desc: `Exact: dp[0][w] = 0 for all w (no items, no value). Scaled: dp[0][0] = 0, dp[0][V>0] = ∞.`,
+		dpExact: cloneDp(dpExact),
+		dpScaled: cloneDp(dpScaled)
+	});
+
+	for (let i = 1; i <= n; i++) {
+		const it = items[i - 1];
+		const sv = scaled[i - 1];
+
+		// Fill exact row i
+		for (let w = 0; w <= W; w++) {
+			const skip = dpExact[i - 1][w];
+			const take = (w >= it.w) ? dpExact[i - 1][w - it.w] + it.v : -Infinity;
+			const chosen = Math.max(skip, take);
+			dpExact[i][w] = chosen;
+			steps.push({
+				type: "dp_exact_cell",
+				line: 8,
+				i, w,
+				exactSkip: skip,
+				exactTake: take,
+				dpExact: cloneDp(dpExact),
+				dpScaled: cloneDp(dpScaled),
+				activeExact: [i, w],
+				label: `Exact dp[${i}][${w}] = ${chosen} (${take > skip ? "take" : "skip"})`,
+				desc: `Item ${i} (v=${it.v}, w=${it.w}). Exact skip = ${skip}, take = ${take === -Infinity ? "—" : take} → dp[${i}][${w}] = ${chosen}.`
+			});
+		}
+
+		// Fill scaled row i
+		for (let V = 0; V <= Vtotal; V++) {
+			const skip = dpScaled[i - 1][V];
+			const take = (V >= sv && dpScaled[i - 1][V - sv] !== Infinity) ? dpScaled[i - 1][V - sv] + it.w : Infinity;
+			const chosen = take < skip ? take : skip;
+			dpScaled[i][V] = chosen;
+			steps.push({
+				type: "dp_scaled_cell",
+				line: 4,
+				i, V, sv,
+				skip, take,
+				dpExact: cloneDp(dpExact),
+				dpScaled: cloneDp(dpScaled),
+				activeScaled: [i, V],
+				label: `Scaled dp[${i}][${V}] = ${chosen === Infinity ? "∞" : chosen} (${take < skip ? "take" : "skip"})`,
+				desc: `Item ${i} (v=${it.v}, w=${it.w}, v'=${sv}). Scaled skip = ${fmtCell(skip)}, take = ${fmtCell(take)} → dp[${i}][${V}] = ${fmtCell(chosen)}.`
+			});
+		}
+	}
+
+	let bestV = 0;
+	for (let V = Vtotal; V >= 0; V--) {
+		if (dpScaled[n][V] <= W) { bestV = V; break; }
+	}
+	const exactOpt = dpExact[n][W];
+
+	steps.push({
+		type: "find_best",
+		line: 5,
+		bestV,
+		bestW: dpScaled[n][bestV],
+		exactOpt,
+		dpExact: cloneDp(dpExact),
+		dpScaled: cloneDp(dpScaled),
+		label: `V* = ${bestV} (largest V with dp[${n}][V] ≤ ${W}); exact OPT = ${exactOpt}`,
+		desc: `Best scaled value reachable within capacity ${W} is V* = ${bestV} (using weight ${dpScaled[n][bestV]}). Exact OPT (from left table cell dp[${n}][${W}]) = ${exactOpt}.`
+	});
+
+	const selected = [];
+	let V = bestV;
+	for (let i = n; i >= 1 && V >= 0; i--) {
+		const sv = scaled[i - 1];
+		if (V >= sv && dpScaled[i - 1][V - sv] !== Infinity && dpScaled[i - 1][V - sv] + items[i - 1].w === dpScaled[i][V]) {
+			selected.push(i - 1);
+			steps.push({
+				type: "trace_take",
+				line: 6,
+				i, V,
+				selected: [...selected],
+				bestV,
+				exactOpt,
+				dpExact: cloneDp(dpExact),
+				dpScaled: cloneDp(dpScaled),
+				tracePathScaled: [[i, V], [i - 1, V - sv]],
+				label: `Trace: include item ${i}`,
+				desc: `Scaled dp[${i}][${V}] equals dp[${i - 1}][${V - sv}] + w_${i}, so item ${i} was taken. V drops by v'_${i} = ${sv}.`
+			});
+			V -= sv;
+		} else {
+			steps.push({
+				type: "trace_skip",
+				line: 6,
+				i, V,
+				selected: [...selected],
+				bestV,
+				exactOpt,
+				dpExact: cloneDp(dpExact),
+				dpScaled: cloneDp(dpScaled),
+				tracePathScaled: [[i, V], [i - 1, V]],
+				label: `Trace: skip item ${i}`,
+				desc: `Scaled dp[${i}][${V}] inherits from dp[${i - 1}][${V}], so item ${i} was not taken.`
+			});
+		}
+	}
+	selected.reverse();
+
+	const fptas = selected.reduce((s, idx) => s + items[idx].v, 0);
+	const fptasW = selected.reduce((s, idx) => s + items[idx].w, 0);
+	const opt = exactOpt;
+	const bound = (1 - epsilon) * opt;
+
+	steps.push({
+		type: "final",
+		line: 7,
+		dpExact: cloneDp(dpExact),
+		dpScaled: cloneDp(dpScaled),
+		bestV,
+		exactOpt,
+		selected: [...selected],
+		fptas, fptasW, opt, bound,
+		K,
+		label: `FPTAS value = ${fptas} (selected items ${selected.map((i) => i + 1).join(", ") || "—"})`,
+		desc: `FPTAS picked items {${selected.map((i) => i + 1).join(", ") || "—"}} for total value ${fptas} at weight ${fptasW}/${W}. Exact OPT = ${opt} (visible in left table). Bound (1−ε)·OPT = ${bound.toFixed(3)}. ${fptas >= bound - 1e-9 ? "Guarantee satisfied ✓" : "Guarantee violated ✗"}`
+	});
+
+	return { steps, K, scaled, Vtotal, dpExact, dpScaled, bestV, selected, opt, fptas };
+}
+
+function fmtCell(v) {
+	return v === Infinity ? "∞" : String(v);
+}
+
+function cloneDp(dp) {
+	return dp.map((row) => [...row]);
+}
+
+function renderScalingChart(step) {
+	if (!els.scalingChart) return;
+	const items = state.items;
+	if (!items || items.length === 0) {
+		els.scalingChart.innerHTML = "";
+		return;
+	}
+	const scaled = (step && step.scaled) || (state.scaled && state.scaled.length ? state.scaled : null);
+	const W = 600;
+	const padL = 70;
+	const padR = 70;
+	const barH = 16;
+	const innerGap = 4;
+	const rowGap = 14;
+	const rowH = barH * 2 + innerGap + rowGap;
+	const H = items.length * rowH + 28;
+	const trackW = W - padL - padR;
+
+	const vmax = Math.max(1, ...items.map((it) => it.v));
+	const svmax = scaled ? Math.max(1, ...scaled) : 1;
+	const activeIdx = step && step.activeExact ? step.activeExact[0] - 1 : (step && step.activeScaled ? step.activeScaled[0] - 1 : -1);
+	const selected = step && step.selected ? new Set(step.selected) : null;
+
+	let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; max-height:260px;">`;
+	svg += `<text x="${padL}" y="14" fill="var(--text-muted)" font-size="10" font-weight="700" letter-spacing="0.5">SCALED VS ORIGINAL</text>`;
+
+	items.forEach((it, idx) => {
+		const yTop = 24 + idx * rowH;
+		const wOrig = (it.v / vmax) * trackW;
+		const sv = scaled && Number.isFinite(scaled[idx]) ? scaled[idx] : null;
+		const wScaled = sv !== null ? (sv / svmax) * trackW : 0;
+		const isActive = activeIdx === idx;
+		const isSel = selected && selected.has(idx);
+
+		const origColor = isActive ? "rgba(245,158,11,0.9)" : (isSel ? "rgba(74,222,128,0.7)" : "var(--accent)");
+		const origFill = isActive ? "rgba(245,158,11,0.25)" : (isSel ? "rgba(74,222,128,0.20)" : "rgba(56,189,248,0.25)");
+		const scaledColor = isActive ? "rgba(245,158,11,0.9)" : (isSel ? "rgba(74,222,128,0.7)" : "var(--purple)");
+		const scaledFill = isActive ? "rgba(245,158,11,0.20)" : (isSel ? "rgba(74,222,128,0.18)" : "rgba(167,139,250,0.25)");
+
+		svg += `<text x="${padL - 8}" y="${yTop + barH / 2 + 4}" fill="${isSel ? 'var(--green)' : 'var(--text-dim)'}" font-size="10" text-anchor="end" font-weight="${isSel ? '700' : '500'}">item ${idx + 1}</text>`;
+		svg += `<line x1="${padL}" y1="${yTop - 4}" x2="${padL}" y2="${yTop + barH * 2 + innerGap + 4}" stroke="rgba(45,55,72,0.6)" stroke-width="0.5" />`;
+
+		// Original v bar
+		svg += `<rect x="${padL}" y="${yTop}" width="${Math.max(wOrig, 1)}" height="${barH}" fill="${origFill}" stroke="${origColor}" stroke-width="1" rx="2" />`;
+		svg += `<text x="${padL + wOrig + 5}" y="${yTop + barH / 2 + 4}" fill="${origColor}" font-size="10" font-weight="600">v=${it.v}, w=${it.w}</text>`;
+
+		// Scaled v' bar
+		if (sv !== null) {
+			svg += `<rect x="${padL}" y="${yTop + barH + innerGap}" width="${Math.max(wScaled, 1)}" height="${barH}" fill="${scaledFill}" stroke="${scaledColor}" stroke-width="1" rx="2" />`;
+			svg += `<text x="${padL + wScaled + 5}" y="${yTop + barH + innerGap + barH / 2 + 4}" fill="${scaledColor}" font-size="10" font-weight="600">v'=${sv}</text>`;
+		} else {
+			svg += `<text x="${padL + 4}" y="${yTop + barH + innerGap + barH / 2 + 4}" fill="var(--text-muted)" font-size="10" font-style="italic">scale not yet applied</text>`;
+		}
+	});
+
+	svg += `</svg>`;
+	els.scalingChart.innerHTML = svg;
+}
+
+function renderItems(step) {
+	const items = state.items;
+	const scaled = step && step.scaled ? step.scaled : state.scaled;
+	const selected = step && step.selected ? new Set(step.selected) : null;
+	const activeI = step && step.active ? step.active[0] - 1 : (step && step.i ? step.i - 1 : -1);
+
+	let html = "";
+	items.forEach((it, idx) => {
+		const isSel = selected && selected.has(idx);
+		const isActive = activeI === idx;
+		const cls = isSel ? "selected" : (isActive ? "active" : "");
+		const sv = (scaled && Number.isFinite(scaled[idx])) ? scaled[idx] : "—";
+		const status = isSel ? "✓ included" : (isActive ? "active" : "");
+		html += `<tr class="${cls}"><td>${idx + 1}</td><td>${it.v}</td><td>${it.w}</td><td class="v-scaled">${sv}</td><td>${status}</td></tr>`;
+	});
+	els.itemsBody.innerHTML = html;
+}
+
+function renderDpTable(targetEl, dp, opts) {
+	if (!targetEl) return;
+	if (!dp || dp.length === 0) {
+		targetEl.innerHTML = `<div style="color:var(--text-muted); padding: 10px;">Build steps to populate the table.</div>`;
+		return;
+	}
+	const o = opts || {};
+	const n = dp.length - 1;
+	const cols = dp[0].length - 1;
+	const active = o.active || null;
+	const bestCol = (o.bestCol !== undefined && o.bestCol !== null) ? o.bestCol : null;
+	const tracePath = o.tracePath || null;
+	const tracePathSet = tracePath ? new Set(tracePath.map(([i, c]) => `${i},${c}`)) : null;
+	const colLabel = o.colLabel || "V";
+
+	let html = `<table class="dp-table"><thead><tr><th class="row-head">i \\ ${colLabel}</th>`;
+	for (let c = 0; c <= cols; c++) {
+		html += `<th>${c}</th>`;
+	}
+	html += "</tr></thead><tbody>";
+	for (let i = 0; i <= n; i++) {
+		html += `<tr><td class="row-label">${i}</td>`;
+		for (let c = 0; c <= cols; c++) {
+			const val = dp[i][c];
+			const isInf = val === Infinity || val === -Infinity;
+			let cls = isInf ? "cell-inf" : "cell-filled";
+			if (active && active[0] === i && active[1] === c) cls = "cell-active";
+			else if (tracePathSet && tracePathSet.has(`${i},${c}`)) cls = "cell-traceback";
+			else if (i === n && bestCol !== null && c === bestCol) cls = "cell-best";
+			const display = val === Infinity ? "∞" : (val === -Infinity ? "—" : val);
+			html += `<td class="${cls}">${display}</td>`;
+		}
+		html += "</tr>";
+	}
+	html += "</tbody></table>";
+	targetEl.innerHTML = html;
+
+	if (active) {
+		const tbl = targetEl.querySelector(".dp-table");
+		if (tbl) {
+			const rows = tbl.querySelectorAll("tbody tr");
+			const tr = rows[active[0]];
+			if (tr) {
+				const cell = tr.children[active[1] + 1];
+				if (cell && cell.scrollIntoView) {
+					cell.scrollIntoView({ block: "nearest", inline: "nearest" });
+				}
+			}
+		}
+	}
+}
+
+function updatePseudocode(step) {
+	if (!els.pseudocode) return;
+	els.pseudocode.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
+	if (!step || !step.line) return;
+	const active = els.pseudocode.querySelector(`li[data-line="${step.line}"]`);
+	if (active) active.classList.add("active");
+}
+
+function updateCounters() {
+	const upto = state.steps.slice(0, Math.max(state.stepIndex + 1, 0));
+	els.cntSteps.textContent = state.steps.length ? String(state.stepIndex + 1) : "0";
+	const Kstep = upto.find((s) => s.type === "scale_K");
+	els.cntK.textContent = Kstep ? Kstep.K.toFixed(2) : "—";
+	const cellSteps = upto.filter((s) => s.type === "dp_exact_cell" || s.type === "dp_scaled_cell").length;
+	els.cntCells.textContent = String(cellSteps);
+}
+
+function renderHistory() {
+	els.historyBody.innerHTML = "";
+	if (state.steps.length === 0) return;
+	const start = Math.max(0, state.stepIndex - 49);
+	for (let idx = start; idx <= state.stepIndex; idx++) {
+		const step = state.steps[idx];
+		const row = document.createElement("tr");
+		row.dataset.index = String(idx);
+		if (idx === state.stepIndex) row.classList.add("history-active");
+		row.innerHTML = `<td>${idx + 1}</td><td>${step.label || step.type}</td>`;
+		els.historyBody.appendChild(row);
+	}
+}
+
+function formatStepExplanation(step) {
+	if (!step) {
+		return `<div class="exp-title">Waiting for steps</div><p>Build steps to see the FPTAS pipeline.</p>`;
+	}
+	let formula = "";
+	if (step.type === "scale_K") {
+		formula = `<div class="exp-formula">K = ${step.K.toFixed(3)}</div>`;
+	} else if (step.type === "scale_values") {
+		formula = `<div class="exp-formula">v' = [${step.scaled.join(", ")}]</div>`;
+	} else if (step.type === "dp_exact_cell") {
+		const cell = step.dpExact[step.i][step.w];
+		formula = `<div class="exp-formula">exact: skip = ${step.exactSkip}, take = ${step.exactTake === -Infinity ? "—" : step.exactTake} &nbsp;→&nbsp; dp[${step.i}][${step.w}] = ${cell}</div>`;
+	} else if (step.type === "dp_scaled_cell") {
+		const cell = step.dpScaled[step.i][step.V];
+		formula = `<div class="exp-formula">scaled: skip = ${fmtCell(step.skip)}, take = ${fmtCell(step.take)} &nbsp;→&nbsp; dp[${step.i}][${step.V}] = ${fmtCell(cell)}</div>`;
+	} else if (step.type === "find_best") {
+		formula = `<div class="exp-formula">V* = ${step.bestV} &nbsp; weight = ${fmtCell(step.bestW)} &nbsp; exact OPT = ${step.exactOpt}</div>`;
+	} else if (step.type === "final") {
+		formula = `<div class="exp-formula">FPTAS = ${step.fptas} &nbsp; OPT = ${step.opt} &nbsp; (1−ε)·OPT = ${step.bound.toFixed(3)}</div>`;
+	}
+	return `<div class="exp-title">${step.label || step.type}</div><p>${step.desc || ""}</p>${formula}`;
+}
+
+function updateSummary(step) {
+	const finalStep = state.steps[state.steps.length - 1];
+	const lastShown = step || finalStep;
+	const Kstep = state.steps.find((s) => s.type === "scale_K");
+	const valuesStep = state.steps.find((s) => s.type === "scale_values");
+
+	els.outK.textContent = Kstep ? Kstep.K.toFixed(3) : "—";
+	els.outVtotal.textContent = valuesStep ? String(valuesStep.Vtotal) : "—";
+
+	if (finalStep && finalStep.type === "final") {
+		els.outSelected.textContent = finalStep.selected.length ? finalStep.selected.map((i) => `#${i + 1}`).join(", ") : "(none)";
+		els.outFptas.textContent = `${finalStep.fptas} (w=${finalStep.fptasW})`;
+		els.outOpt.textContent = String(finalStep.opt);
+		els.outBound.textContent = finalStep.bound.toFixed(3);
+		els.cmpOptValue.textContent = String(finalStep.opt);
+		els.cmpFptasValue.textContent = String(finalStep.fptas);
+		const ratio = finalStep.opt === 0 ? 1 : finalStep.fptas / finalStep.opt;
+		els.cmpRatioLabel.textContent = `${(ratio * 100).toFixed(1)}%`;
+		els.cmpRatioBar.style.width = `${Math.min(100, ratio * 100)}%`;
+		const bound = 1 - state.epsilon;
+		const ok = ratio + 1e-9 >= bound;
+		els.cmpRatioBar.classList.toggle("below-bound", !ok);
+		els.cmpBoundTag.textContent = `bound (1−ε) = ${bound.toFixed(2)} ${ok ? "✓ guarantee met" : "✗"}`;
+	} else {
+		els.outSelected.textContent = "—";
+		els.outFptas.textContent = "—";
+		els.outOpt.textContent = "—";
+		els.outBound.textContent = "—";
+		els.cmpOptValue.textContent = "—";
+		els.cmpFptasValue.textContent = "—";
+		els.cmpRatioLabel.textContent = "—";
+		els.cmpRatioBar.style.width = "0%";
+		els.cmpBoundTag.textContent = `bound (1−ε) = ${(1 - state.epsilon).toFixed(2)}`;
+	}
+}
+
+function renderStep() {
+	const step = state.steps[state.stepIndex];
+	renderItems(step);
+	renderScalingChart(step);
+
+	const finalStep = state.steps.length ? state.steps[state.steps.length - 1] : null;
+	const exactColCount = finalStep && finalStep.dpExact ? finalStep.dpExact[0].length : null;
+	const exactBestCol = (step && (step.type === "find_best" || step.type === "trace_take" || step.type === "trace_skip" || step.type === "final") && exactColCount)
+		? exactColCount - 1
+		: null;
+
+	renderDpTable(els.dpExactWrap, step ? step.dpExact : null, {
+		active: step ? step.activeExact : null,
+		bestCol: exactBestCol,
+		colLabel: "w"
+	});
+	renderDpTable(els.dpScaledWrap, step ? step.dpScaled : null, {
+		active: step ? step.activeScaled : null,
+		bestCol: step && step.bestV !== undefined ? step.bestV : null,
+		tracePath: step ? step.tracePathScaled : null,
+		colLabel: "V"
+	});
+
+	updatePseudocode(step);
+	updateCounters();
+	renderHistory();
+	updateSummary(step);
+	els.stepExplanation.innerHTML = formatStepExplanation(step);
+	els.stepCounter.textContent = `Step ${state.steps.length ? state.stepIndex + 1 : 0} / ${state.steps.length}`;
+}
+
+function buildAndRender() {
+	const items = parseItems(els.itemsInput.value);
+	const capacity = Number(els.capacityInput.value);
+	const epsilon = Number(els.epsilonInput.value);
+	if (!items || items.length === 0) {
+		setStatus("error", "Enter at least one valid item (value,weight per line; values ≥ 0, weights > 0).");
+		state.steps = [];
+		state.stepIndex = 0;
+		state.items = items || [];
+		renderStep();
+		return;
+	}
+	if (!Number.isFinite(capacity) || capacity <= 0) {
+		setStatus("error", "Capacity must be a positive integer.");
+		return;
+	}
+	if (!Number.isFinite(epsilon) || epsilon <= 0 || epsilon >= 1) {
+		setStatus("error", "ε must be in (0, 1).");
+		return;
+	}
+	state.items = items;
+	state.capacity = Math.floor(capacity);
+	state.epsilon = epsilon;
+	const built = buildSteps(items, state.capacity, epsilon);
+	state.steps = built.steps;
+	state.K = built.K;
+	state.scaled = built.scaled;
+	state.Vtotal = built.Vtotal;
+	state.dp = built.dp;
+	state.bestV = built.bestV;
+	state.selected = built.selected;
+	state.opt = built.opt;
+	state.fptas = built.fptas;
+	state.stepIndex = 0;
+	setStatus("ready", `Built ${state.steps.length} steps (DP table ${items.length + 1}×${built.Vtotal + 1}).`);
+	renderStep();
+}
+
+function stopPlayback() {
+	state.playing = false;
+	if (state.timer) {
+		clearTimeout(state.timer);
+		state.timer = null;
+	}
+	if (els.play) els.play.disabled = false;
+	if (els.pause) els.pause.disabled = true;
+}
+
+function stepForward() {
+	if (state.steps.length === 0) return;
+	if (state.stepIndex < state.steps.length - 1) {
+		state.stepIndex += 1;
+		renderStep();
+	} else {
+		stopPlayback();
+		setStatus("done", "Reached final step.");
+	}
+}
+
+function playLoop() {
+	if (!state.playing) return;
+	stepForward();
+	if (state.playing && state.stepIndex < state.steps.length - 1) {
+		state.timer = setTimeout(playLoop, state.speedMs);
+	} else if (state.stepIndex >= state.steps.length - 1) {
+		stopPlayback();
+		setStatus("done", "Animation complete.");
+	}
+}
+
+function startPlay() {
+	if (state.steps.length === 0 || state.playing) return;
+	if (state.stepIndex >= state.steps.length - 1) {
+		state.stepIndex = 0;
+		renderStep();
+	}
+	state.playing = true;
+	if (els.play) els.play.disabled = true;
+	if (els.pause) els.pause.disabled = false;
+	setStatus("playing", "Animating FPTAS pipeline.");
+	state.timer = setTimeout(playLoop, state.speedMs);
+}
+
+function pausePlay() {
+	if (!state.playing) return;
+	stopPlayback();
+	setStatus("paused", "Paused.");
+}
+
+function resetSteps() {
+	stopPlayback();
+	state.stepIndex = 0;
+	renderStep();
+	setStatus("ready", "Reset to start.");
+}
+
+function applyPreset(name) {
+	const p = PRESETS[name];
+	state.items = p.items.map((i) => ({ ...i }));
+	state.capacity = p.capacity;
+	state.epsilon = p.epsilon;
+	els.itemsInput.value = p.items.map((i) => `${i.v},${i.w}`).join("\n");
+	els.capacityInput.value = String(p.capacity);
+	els.epsilonInput.value = String(p.epsilon);
+	buildAndRender();
+}
+
+function attachEvents() {
+	els.presetSmall.addEventListener("click", () => applyPreset("small"));
+	els.presetBalanced.addEventListener("click", () => applyPreset("balanced"));
+	els.presetTight.addEventListener("click", () => applyPreset("tight"));
+	els.presetLoose.addEventListener("click", () => applyPreset("loose"));
+	els.applyItems.addEventListener("click", buildAndRender);
+	els.build.addEventListener("click", buildAndRender);
+	els.play.addEventListener("click", startPlay);
+	els.pause.addEventListener("click", pausePlay);
+	els.step.addEventListener("click", () => {
+		stopPlayback();
+		stepForward();
+		setStatus("ready", "Stepped forward.");
+	});
+	els.reset.addEventListener("click", resetSteps);
+	els.speed.addEventListener("input", () => setSpeed(Number(els.speed.value)));
+	els.historyBody.addEventListener("click", (event) => {
+		const row = event.target.closest("tr");
+		if (!row) return;
+		const idx = Number(row.dataset.index);
+		if (!Number.isNaN(idx)) {
+			stopPlayback();
+			state.stepIndex = idx;
+			renderStep();
+			setStatus("ready", "Jumped to step.");
+		}
+	});
+}
+
+function init() {
+	attachEvents();
+	setStatus("idle", "Load a preset or enter custom items.");
+	setSpeed(state.speedIndex);
+	if (els.pause) els.pause.disabled = true;
+	buildAndRender();
+}
+
+init();
+</script>
+</body>
+</html>
