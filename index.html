@@ -41,7 +41,22 @@ body {
 	min-height: 100vh;
 	font-size: 14px;
 	overflow-x: hidden;
+	position: relative;
 }
+body::before {
+	content: "";
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	width: 70vw;
+	height: 70vw;
+	transform: translate(-50%, -50%);
+	background: radial-gradient(circle, rgba(45,212,191,0.32) 0%, rgba(45,212,191,0.16) 35%, rgba(45,212,191,0) 70%);
+	pointer-events: none;
+	z-index: 0;
+	filter: blur(40px);
+}
+header, .controls-bar, .hero, .lessons, .section, footer { position: relative; z-index: 1; }
 
 a { color: var(--accent); text-decoration: none; }
 
@@ -126,13 +141,14 @@ header .meta {
 	overflow: hidden;
 	border-bottom: 1px solid var(--border);
 }
-.hero canvas#hero-canvas {
-	position: absolute;
+canvas#hero-canvas {
+	position: fixed;
 	inset: 0;
-	width: 100%;
-	height: 100%;
-	opacity: 0.55;
+	width: 100vw;
+	height: 100vh;
+	opacity: 0.65;
 	pointer-events: none;
+	z-index: 0;
 }
 .hero-inner { position: relative; max-width: 1200px; margin: 0 auto; text-align: center; }
 .hero h2 {
@@ -194,6 +210,10 @@ header .meta {
 	border-bottom: 1px solid var(--border);
 	flex-wrap: wrap;
 	align-items: center;
+	position: sticky;
+	top: 60px;
+	z-index: 49;
+	backdrop-filter: blur(8px);
 }
 .search-wrap {
 	flex: 1 1 320px;
@@ -251,8 +271,11 @@ header .meta {
 	margin: 0 auto;
 	padding: 32px 28px;
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	grid-template-columns: repeat(2, 1fr);
 	gap: 18px;
+}
+@media (max-width: 720px) {
+	.lessons { grid-template-columns: 1fr; }
 }
 
 .card {
@@ -609,6 +632,9 @@ footer .sw { width: 12px; height: 12px; border-radius: 3px; }
 </head>
 <body>
 
+<!-- ─────────────── FULL-PAGE BACKGROUND CANVAS ─────────────── -->
+<canvas id="hero-canvas" aria-hidden="true"></canvas>
+
 <!-- ─────────────── HEADER ─────────────── -->
 <header>
 	<div class="brand">
@@ -645,7 +671,6 @@ footer .sw { width: 12px; height: 12px; border-radius: 3px; }
 
 <!-- ─────────────── HERO ─────────────── -->
 <section class="hero">
-	<canvas id="hero-canvas" aria-hidden="true"></canvas>
 	<div class="hero-inner">
 		<h2>Four advanced algorithms.<br>One interactive playground.</h2>
 		<p class="lede">
@@ -665,54 +690,6 @@ footer .sw { width: 12px; height: 12px; border-radius: 3px; }
 
 <!-- ─────────────── LESSON CARDS ─────────────── -->
 <main class="lessons" id="lesson-grid"></main>
-
-<!-- ─────────────── PLAYGROUND: LIVE CRT ─────────────── -->
-<section class="section">
-	<h3>🧮 Live Playground · Chinese Remainder Theorem</h3>
-	<div class="sub">Solve <code style="font-family:'JetBrains Mono',monospace;color:var(--teal);">x ≡ aᵢ (mod mᵢ)</code> in real time. Edit any field — the answer updates instantly.</div>
-	<div class="playground">
-		<div class="crt-row">
-			<div class="crt-inputs">
-				<div class="crt-input-row">
-					<label>x ≡</label><input type="number" id="a1" value="2">
-					<label>mod</label><input type="number" id="m1" value="3">
-				</div>
-				<div class="crt-input-row">
-					<label>x ≡</label><input type="number" id="a2" value="3">
-					<label>mod</label><input type="number" id="m2" value="5">
-				</div>
-				<div class="crt-input-row">
-					<label>x ≡</label><input type="number" id="a3" value="2">
-					<label>mod</label><input type="number" id="m3" value="7">
-				</div>
-				<div style="display:flex; gap:8px; margin-top:4px;">
-					<button class="btn" id="crt-preset-1">Preset · classic</button>
-					<button class="btn" id="crt-preset-2">Preset · coprime triple</button>
-					<button class="btn" id="crt-randomize">Randomize</button>
-				</div>
-			</div>
-			<div class="crt-output" id="crt-output"></div>
-		</div>
-	</div>
-</section>
-
-<!-- ─────────────── QUIZ ─────────────── -->
-<section class="section">
-	<h3>🧠 Quick Quiz · One question per topic</h3>
-	<div class="sub">Test your intuition. Tracks your score across the four lessons.</div>
-	<div class="quiz" id="quiz">
-		<!-- injected by JS -->
-	</div>
-</section>
-
-<!-- ─────────────── TOPIC GRAPH ─────────────── -->
-<section class="section">
-	<h3>🗺️ Topic Map</h3>
-	<div class="sub">Click any node to jump to that lesson.</div>
-	<div class="graph-wrap">
-		<svg id="graph" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet"></svg>
-	</div>
-</section>
 
 <!-- ─────────────── FOOTER ─────────────── -->
 <footer>
@@ -735,7 +712,6 @@ footer .sw { width: 12px; height: 12px; border-radius: 3px; }
 		<div class="help-row"><span><kbd>1</kbd> – <kbd>4</kbd></span><span>Open lesson 1 to 4</span></div>
 		<div class="help-row"><span><kbd>/</kbd></span><span>Focus search</span></div>
 		<div class="help-row"><span><kbd>S</kbd></span><span>Toggle "studied" on focused card</span></div>
-		<div class="help-row"><span><kbd>R</kbd></span><span>Randomize CRT inputs</span></div>
 		<div class="help-row"><span><kbd>?</kbd></span><span>Show / hide this dialog</span></div>
 		<div class="help-row"><span><kbd>Esc</kbd></span><span>Close dialog</span></div>
 		<div style="margin-top:14px; text-align:right;">
@@ -957,7 +933,6 @@ document.addEventListener("keydown", (e) => {
 	if (inField) return;
 
 	if (e.key === "/") { e.preventDefault(); searchInput.focus(); return; }
-	if (e.key.toLowerCase() === "r") { randomizeCRT(); return; }
 	if (["1","2","3","4"].includes(e.key)) {
 		const i = parseInt(e.key,10) - 1;
 		if (LESSONS[i]) window.location.href = LESSONS[i].file;
@@ -970,12 +945,21 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ──────────────────────────────────────────
-   7. HERO BACKGROUND — animated "closest pair" particle network
+   7. HERO BACKGROUND — animated colorful network with flowing particles
    ────────────────────────────────────────── */
 (function heroAnim() {
 	const canvas = document.getElementById("hero-canvas");
 	const ctx = canvas.getContext("2d");
+	const PALETTE = [
+		[56, 189, 248],   // accent (cyan)
+		[167, 139, 250],  // purple
+		[45, 212, 191],   // teal
+		[74, 222, 128],   // green
+		[251, 191, 36],   // amber
+		[248, 113, 113],  // red/pink
+	];
 	let pts = [];
+	let flows = [];
 	let DPR = Math.min(window.devicePixelRatio || 1, 2);
 
 	function resize() {
@@ -983,34 +967,41 @@ document.addEventListener("keydown", (e) => {
 		canvas.width  = r.width  * DPR;
 		canvas.height = r.height * DPR;
 		ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-		const N = Math.max(28, Math.floor(r.width / 28));
+		const N = Math.max(48, Math.floor(Math.sqrt(r.width * r.height) / 18));
 		pts = [];
 		for (let i = 0; i < N; i++) {
+			const c = PALETTE[Math.floor(Math.random() * PALETTE.length)];
 			pts.push({
 				x: Math.random() * r.width,
 				y: Math.random() * r.height,
-				vx: (Math.random() - 0.5) * 0.35,
-				vy: (Math.random() - 0.5) * 0.35,
+				vx: (Math.random() - 0.5) * 0.4,
+				vy: (Math.random() - 0.5) * 0.4,
+				color: c,
+				phase: Math.random() * Math.PI * 2,
 			});
 		}
+		flows = [];
 	}
 	resize();
 	window.addEventListener("resize", resize);
 
 	function dist(a, b) { return Math.hypot(a.x-b.x, a.y-b.y); }
+	const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
+	let frame = 0;
 	function tick() {
+		frame++;
 		const r = canvas.getBoundingClientRect();
 		ctx.clearRect(0, 0, r.width, r.height);
 
-		// Move
+		// Move points
 		for (const p of pts) {
 			p.x += p.vx; p.y += p.vy;
 			if (p.x < 0 || p.x > r.width)  p.vx *= -1;
 			if (p.y < 0 || p.y > r.height) p.vy *= -1;
 		}
 
-		// Find closest pair (O(n²) — fine for ~40 pts)
+		// Closest pair (highlight)
 		let best = Infinity, ai = 0, bi = 1;
 		for (let i = 0; i < pts.length; i++) {
 			for (let j = i+1; j < pts.length; j++) {
@@ -1019,36 +1010,81 @@ document.addEventListener("keydown", (e) => {
 			}
 		}
 
-		// Edges
+		// Edges with color gradients between endpoints
+		const MAX_LINK = 140;
+		const edges = [];
 		ctx.lineWidth = 1;
 		for (let i = 0; i < pts.length; i++) {
 			for (let j = i+1; j < pts.length; j++) {
 				const d = dist(pts[i], pts[j]);
-				if (d < 130) {
-					const a = (1 - d/130) * 0.45;
-					ctx.strokeStyle = `rgba(56,189,248,${a.toFixed(3)})`;
+				if (d < MAX_LINK) {
+					const a = (1 - d/MAX_LINK) * 0.55;
+					const grad = ctx.createLinearGradient(pts[i].x, pts[i].y, pts[j].x, pts[j].y);
+					grad.addColorStop(0, rgba(pts[i].color, a));
+					grad.addColorStop(1, rgba(pts[j].color, a));
+					ctx.strokeStyle = grad;
 					ctx.beginPath();
 					ctx.moveTo(pts[i].x, pts[i].y);
 					ctx.lineTo(pts[j].x, pts[j].y);
 					ctx.stroke();
+					edges.push([i, j, d]);
 				}
 			}
 		}
 
+		// Spawn flowing particles along random edges
+		if (frame % 4 === 0 && edges.length) {
+			const e = edges[Math.floor(Math.random() * edges.length)];
+			flows.push({ i: e[0], j: e[1], t: 0, speed: 0.012 + Math.random() * 0.02 });
+			if (flows.length > 60) flows.shift();
+		}
+
+		// Render flows
+		for (let k = flows.length - 1; k >= 0; k--) {
+			const f = flows[k];
+			f.t += f.speed;
+			if (f.t >= 1) { flows.splice(k, 1); continue; }
+			const a = pts[f.i], b = pts[f.j];
+			if (!a || !b) { flows.splice(k, 1); continue; }
+			const x = a.x + (b.x - a.x) * f.t;
+			const y = a.y + (b.y - a.y) * f.t;
+			const cR = Math.round(a.color[0] + (b.color[0] - a.color[0]) * f.t);
+			const cG = Math.round(a.color[1] + (b.color[1] - a.color[1]) * f.t);
+			const cB = Math.round(a.color[2] + (b.color[2] - a.color[2]) * f.t);
+			const fade = Math.sin(f.t * Math.PI);
+			ctx.fillStyle = `rgba(${cR},${cG},${cB},${(0.9 * fade).toFixed(3)})`;
+			ctx.beginPath();
+			ctx.arc(x, y, 2.2 * fade + 0.6, 0, Math.PI * 2);
+			ctx.fill();
+			// glow halo
+			ctx.fillStyle = `rgba(${cR},${cG},${cB},${(0.18 * fade).toFixed(3)})`;
+			ctx.beginPath();
+			ctx.arc(x, y, 6 * fade + 1, 0, Math.PI * 2);
+			ctx.fill();
+		}
+
 		// Closest pair highlighted
-		ctx.strokeStyle = "rgba(167,139,250,0.95)";
-		ctx.lineWidth = 2;
+		ctx.strokeStyle = "rgba(255,255,255,0.85)";
+		ctx.lineWidth = 1.8;
 		ctx.beginPath();
 		ctx.moveTo(pts[ai].x, pts[ai].y);
 		ctx.lineTo(pts[bi].x, pts[bi].y);
 		ctx.stroke();
 
-		// Points
+		// Points with pulsing color halo
 		for (let i = 0; i < pts.length; i++) {
+			const p = pts[i];
 			const isHL = (i === ai || i === bi);
-			ctx.fillStyle = isHL ? "#a78bfa" : "#38bdf8";
+			const pulse = 0.5 + 0.5 * Math.sin(frame * 0.04 + p.phase);
+			// halo
+			ctx.fillStyle = rgba(p.color, 0.18 * pulse + 0.05);
 			ctx.beginPath();
-			ctx.arc(pts[i].x, pts[i].y, isHL ? 3.4 : 2.0, 0, Math.PI * 2);
+			ctx.arc(p.x, p.y, isHL ? 8 : 6, 0, Math.PI * 2);
+			ctx.fill();
+			// core
+			ctx.fillStyle = rgba(p.color, 1);
+			ctx.beginPath();
+			ctx.arc(p.x, p.y, isHL ? 3.6 : 2.2, 0, Math.PI * 2);
 			ctx.fill();
 		}
 
@@ -1325,270 +1361,7 @@ document.addEventListener("keydown", (e) => {
 })();
 
 /* ──────────────────────────────────────────
-   9. CRT PLAYGROUND
-   ────────────────────────────────────────── */
-function gcdExt(a, b) {
-	if (b === 0) return [a, 1n, 0n];
-	const [g, x1, y1] = gcdExt(b, a % b);
-	return [g, y1, x1 - (a / b) * y1];
-}
-function modInv(a, m) {
-	a = ((a % m) + m) % m;
-	const [g, x] = gcdExt(a, m);
-	if (g !== 1n) return null;
-	return ((x % m) + m) % m;
-}
-function gcd(a, b) { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b) { [a, b] = [b, a % b]; } return a; }
-
-function solveCRT(pairs) {
-	// Returns { x, M, steps } or { error }
-	let X = 0n, M = 1n;
-	const steps = [];
-	for (const [a0, m0] of pairs) {
-		if (m0 <= 0n) return { error: "Modulus must be positive." };
-		const a = ((a0 % m0) + m0) % m0;
-		if (gcd(M, m0) !== 1n) return { error: `Moduli ${M} and ${m0} are not coprime — classic CRT fails.` };
-		// Solve X' = X + M·t with X' ≡ a (mod m0)  →  t ≡ (a-X)·M⁻¹ (mod m0)
-		const inv = modInv(M, m0);
-		if (inv === null) return { error: `M⁻¹ does not exist mod ${m0}.` };
-		const t = (((a - X) % m0) + m0) % m0 * inv % m0;
-		X = X + M * t;
-		M = M * m0;
-		X = ((X % M) + M) % M;
-		steps.push({ a, m: m0, X, M });
-	}
-	return { x: X, M, steps };
-}
-
-function readPairs() {
-	const a = ["a1", "a2", "a3"].map(id => BigInt(parseInt(document.getElementById(id).value || "0", 10)));
-	const m = ["m1", "m2", "m3"].map(id => BigInt(parseInt(document.getElementById(id).value || "0", 10)));
-	return [[a[0], m[0]], [a[1], m[1]], [a[2], m[2]]];
-}
-
-function renderCRT() {
-	const out = document.getElementById("crt-output");
-	const pairs = readPairs();
-	const result = solveCRT(pairs);
-	if (result.error) {
-		out.innerHTML = `<span class="err">⚠ ${result.error}</span>`;
-		return;
-	}
-	let html = "";
-	html += `<span class="dim">// system</span>\n`;
-	pairs.forEach(([a, m], i) => {
-		html += `  x ≡ ${a} (mod ${m})\n`;
-	});
-	html += `\n<span class="dim">// step-by-step CRT merge</span>\n`;
-	let prev = { X: 0n, M: 1n };
-	result.steps.forEach((s, i) => {
-		html += `  step ${i+1}: merge mod ${s.m}  →  x ≡ <span class="pop">${s.X}</span> (mod ${s.M})\n`;
-		prev = s;
-	});
-	html += `\n<span class="ok">✓ x ≡ ${result.x} (mod ${result.M})</span>`;
-	// Verify
-	const ok = pairs.every(([a, m]) => ((result.x % m) + m) % m === ((a % m) + m) % m);
-	html += ok ? `\n<span class="dim">// verified against all congruences</span>`
-	           : `\n<span class="err">⚠ verification failed</span>`;
-	out.innerHTML = html.replace(/\n/g, "<br>");
-}
-
-["a1","a2","a3","m1","m2","m3"].forEach(id => {
-	document.getElementById(id).addEventListener("input", renderCRT);
-});
-
-document.getElementById("crt-preset-1").addEventListener("click", () => setCRT([2,3], [3,5], [2,7]));
-document.getElementById("crt-preset-2").addEventListener("click", () => setCRT([1,4], [4,9], [6,11]));
-document.getElementById("crt-randomize").addEventListener("click", randomizeCRT);
-
-function setCRT(p1, p2, p3) {
-	document.getElementById("a1").value = p1[0]; document.getElementById("m1").value = p1[1];
-	document.getElementById("a2").value = p2[0]; document.getElementById("m2").value = p2[1];
-	document.getElementById("a3").value = p3[0]; document.getElementById("m3").value = p3[1];
-	renderCRT();
-}
-function randomizeCRT() {
-	// pick coprime moduli from a small pool
-	const pool = [3, 4, 5, 7, 9, 11, 13];
-	const pickCoprime = () => {
-		while (true) {
-			const m1 = pool[Math.floor(Math.random() * pool.length)];
-			const m2 = pool[Math.floor(Math.random() * pool.length)];
-			const m3 = pool[Math.floor(Math.random() * pool.length)];
-			const cp = (a,b) => { while (b) { [a,b] = [b, a%b]; } return a === 1; };
-			if (cp(m1,m2) && cp(m2,m3) && cp(m1,m3)) return [m1, m2, m3];
-		}
-	};
-	const [m1, m2, m3] = pickCoprime();
-	setCRT(
-		[Math.floor(Math.random() * m1), m1],
-		[Math.floor(Math.random() * m2), m2],
-		[Math.floor(Math.random() * m3), m3],
-	);
-	toast("Randomized CRT inputs", "");
-}
-renderCRT();
-
-/* ──────────────────────────────────────────
-   10. QUIZ
-   ────────────────────────────────────────── */
-const QUIZ = [
-	{
-		t: "Why does the closest-pair strip step only need to compare each point to its next 7 neighbours?",
-		opts: [
-			"Because there are at most 7 points in any δ × 2δ box (geometric packing).",
-			"Because the divide step always splits into 7 buckets.",
-			"Because of the master theorem with constant 7.",
-			"Because sorting reduces 8 comparisons to 7."
-		],
-		ans: 0,
-		topic: "Closest pair · 7-point lemma",
-	},
-	{
-		t: "RSA-CRT decrypts faster than direct RSA-modular-exponentiation because…",
-		opts: [
-			"It avoids modular inversion entirely.",
-			"It works mod p and mod q (each ~½ the bit-length) and recombines with CRT.",
-			"It precomputes the message at key generation time.",
-			"It uses Montgomery multiplication, which CRT is incompatible with."
-		],
-		ans: 1,
-		topic: "RSA-CRT speedup",
-	},
-	{
-		t: "An FPTAS for 0/1 knapsack scales values by K = εV/n. Why this particular K?",
-		opts: [
-			"It is the largest K that keeps the DP table polynomial-sized.",
-			"It minimises memory at the cost of accuracy.",
-			"It bounds total rounding loss by ε·OPT, hence (1−ε)-approximation.",
-			"It guarantees the optimal item is always picked first."
-		],
-		ans: 2,
-		topic: "FPTAS scaling trick",
-	},
-	{
-		t: "Cooley–Tukey FFT achieves O(n log n) by exploiting which property of ωₙ?",
-		opts: [
-			"ωₙⁿ = 0",
-			"ω₂ₙᵏ = ωₙᵏ/²  (halving lemma)",
-			"All powers of ωₙ are real.",
-			"ωₙ commutes with addition only on prime n."
-		],
-		ans: 1,
-		topic: "FFT halving lemma",
-	},
-];
-
-(function renderQuiz() {
-	const host = document.getElementById("quiz");
-	let answered = 0, correct = 0;
-	QUIZ.forEach((q, qi) => {
-		const block = document.createElement("div");
-		block.style.marginBottom = qi < QUIZ.length - 1 ? "18px" : "";
-		const opts = q.opts.map((o, oi) =>
-			`<button class="quiz-opt" data-q="${qi}" data-o="${oi}">${String.fromCharCode(65+oi)}. ${o}</button>`
-		).join("");
-		block.innerHTML = `
-			<div class="quiz-q"><span class="q-num">Q${qi+1} · ${q.topic}</span>${q.t}</div>
-			<div class="quiz-options">${opts}</div>
-		`;
-		host.appendChild(block);
-	});
-	const foot = document.createElement("div");
-	foot.className = "quiz-foot";
-	foot.innerHTML = `<span>Tip: shortcuts <kbd>1</kbd>–<kbd>4</kbd> open the matching lesson for each topic.</span>
-		<span class="score" id="quiz-score">0 / ${QUIZ.length}</span>`;
-	host.appendChild(foot);
-
-	host.addEventListener("click", (e) => {
-		const btn = e.target.closest(".quiz-opt");
-		if (!btn || btn.classList.contains("locked")) return;
-		const qi = +btn.dataset.q, oi = +btn.dataset.o;
-		const q = QUIZ[qi];
-		// lock the whole question
-		host.querySelectorAll(`[data-q="${qi}"]`).forEach(b => b.classList.add("locked"));
-		if (oi === q.ans) {
-			btn.classList.add("correct");
-			correct++;
-			toast(`✓ Correct — ${q.topic}`, "green");
-		} else {
-			btn.classList.add("wrong");
-			host.querySelector(`[data-q="${qi}"][data-o="${q.ans}"]`).classList.add("correct");
-			toast(`✗ Not quite — see lesson for ${q.topic}`, "amber");
-		}
-		answered++;
-		document.getElementById("quiz-score").textContent = `${correct} / ${QUIZ.length}`;
-		if (answered === QUIZ.length && correct === QUIZ.length) {
-			setTimeout(() => toast("🏆 Perfect score!", "green"), 400);
-		}
-	});
-})();
-
-/* ──────────────────────────────────────────
-   11. TOPIC GRAPH (clickable SVG)
-   ────────────────────────────────────────── */
-(function topicGraph() {
-	const svg = document.getElementById("graph");
-	const NS = "http://www.w3.org/2000/svg";
-
-	const center = { x: 400, y: 160, label: "Algorithms\nTeaching", color: "#38bdf8" };
-	const nodes = [
-		{ x: 130, y: 70,  label: "🔐 CRT & RSA-CRT",       file: "ChineseRemainder_RSA.html", color: "#38bdf8" },
-		{ x: 130, y: 250, label: "📍 Closest Pair (D&C)", file: "ClosestPairPoints.html",    color: "#4ade80" },
-		{ x: 670, y: 70,  label: "🎒 FPTAS · Knapsack",    file: "FPTAS.html",                color: "#fbbf24" },
-		{ x: 670, y: 250, label: "🌊 DFT / FFT Circuits",  file: "dft_fft_circuits.html",     color: "#a78bfa" },
-	];
-
-	// Edges
-	nodes.forEach(n => {
-		const ln = document.createElementNS(NS, "line");
-		ln.setAttribute("x1", center.x); ln.setAttribute("y1", center.y);
-		ln.setAttribute("x2", n.x); ln.setAttribute("y2", n.y);
-		ln.setAttribute("stroke", n.color); ln.setAttribute("stroke-width", "1.5");
-		ln.setAttribute("stroke-opacity", "0.45");
-		svg.appendChild(ln);
-	});
-
-	const drawNode = (n, isCenter = false) => {
-		const g = document.createElementNS(NS, "g");
-		g.setAttribute("class", "gnode");
-		if (n.file) g.style.cursor = "pointer";
-
-		const w = isCenter ? 150 : 200, h = isCenter ? 60 : 44;
-		const x = n.x - w/2, y = n.y - h/2;
-		const rect = document.createElementNS(NS, "rect");
-		rect.setAttribute("x", x); rect.setAttribute("y", y);
-		rect.setAttribute("width", w); rect.setAttribute("height", h);
-		rect.setAttribute("rx", 10); rect.setAttribute("ry", 10);
-		rect.setAttribute("fill", isCenter ? "#1f6feb" : "#1a2236");
-		rect.setAttribute("stroke", n.color); rect.setAttribute("stroke-width", "1.5");
-		g.appendChild(rect);
-
-		const lines = n.label.split("\n");
-		lines.forEach((line, i) => {
-			const text = document.createElementNS(NS, "text");
-			text.setAttribute("x", n.x);
-			text.setAttribute("y", n.y - (lines.length-1)*8 + i*16 + 5);
-			text.setAttribute("text-anchor", "middle");
-			text.setAttribute("font-family", "IBM Plex Sans, sans-serif");
-			text.setAttribute("font-size", isCenter ? "14" : "12");
-			text.setAttribute("font-weight", "600");
-			text.setAttribute("fill", isCenter ? "#fff" : "#e2e8f0");
-			text.textContent = line;
-			g.appendChild(text);
-		});
-
-		if (n.file) {
-			g.addEventListener("click", () => window.location.href = n.file);
-		}
-		svg.appendChild(g);
-	};
-	drawNode(center, true);
-	nodes.forEach(n => drawNode(n));
-})();
-
-/* ──────────────────────────────────────────
-   12. WELCOME TOAST
+   9. WELCOME TOAST
    ────────────────────────────────────────── */
 setTimeout(() => toast("Tip: press 1–4 to jump straight into a lesson.", ""), 700);
 </script>
