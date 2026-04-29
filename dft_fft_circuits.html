@@ -87,6 +87,11 @@ header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
 }
 .algo-tab:hover { background: rgba(56,189,248,0.08); color: var(--text); }
 .algo-tab.active { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.45); color: var(--accent); }
+.algo-tab.home {
+	background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.4);
+	color: var(--purple); margin-left: auto;
+}
+.algo-tab.home:hover { background: rgba(167,139,250,0.22); color: var(--text); }
 
 .roadmap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .roadmap a {
@@ -101,9 +106,19 @@ header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
 	font-size: 14px; font-weight: 600; color: var(--accent);
 	margin-bottom: 8px; border-left: 3px solid var(--accent); padding-left: 10px;
 }
+.notes-section h4 {
+	font-size: 12px; font-weight: 600; color: var(--amber);
+	margin: 12px 0 6px; letter-spacing: 0.2px;
+}
 .notes-section p { color: var(--text-dim); line-height: 1.65; margin-bottom: 8px; }
 .notes-section ul { margin: 8px 0 8px 20px; color: var(--text-dim); line-height: 1.85; }
 .notes-section li { margin-bottom: 4px; }
+.notes-section blockquote {
+	border-left: 3px solid var(--purple);
+	background: rgba(167,139,250,0.06);
+	padding: 8px 12px; margin: 10px 0;
+	color: var(--text); font-style: italic; font-size: 12.5px; line-height: 1.6;
+}
 .notes-section code {
 	background: var(--panel2); color: var(--teal);
 	padding: 1px 5px; border-radius: 3px;
@@ -416,6 +431,7 @@ table.dft-matrix td {
 	<button class="algo-tab" onclick="location.href='ChineseRemainder_RSA.html'">Part 2: CRT / RSA-CRT</button>
 	<button class="algo-tab" onclick="location.href='ClosestPairPoints.html'">Part 3: Closest Pair of Points</button>
 	<button class="algo-tab" onclick="location.href='FPTAS.html'">Part 4: FPTAS</button>
+	<button class="algo-tab home" onclick="location.href='index.html'">Home →</button>
 </nav>
 
 <section id="lecture-notes">
@@ -425,85 +441,245 @@ table.dft-matrix td {
 	</div>
 	<div class="notes-body open" id="notes-body">
 		<div class="roadmap">
-			<a href="#sec1">1. The Problem</a>
-			<a href="#sec2">2. Naive DFT</a>
-			<a href="#sec3">3. Roots of Unity &amp; DFT Matrix</a>
-			<a href="#sec4">4. Cooley-Tukey</a>
-			<a href="#sec5">5. Bit-Reversal</a>
-			<a href="#sec6">6. Butterfly</a>
-			<a href="#sec7">7. Complexity</a>
-			<a href="#sec8">8. Worked Example</a>
+			<a href="#sec1">1. The Problem &amp; Why It Matters</a>
+			<a href="#sec2">2. Complex Exponentials Primer</a>
+			<a href="#sec3">3. The DFT Formula Explained</a>
+			<a href="#sec4">4. Naive DFT &amp; Why It's Slow</a>
+			<a href="#sec5">5. Roots of Unity &amp; Symmetries</a>
+			<a href="#sec6">6. Cooley-Tukey Divide &amp; Conquer</a>
+			<a href="#sec7">7. Bit-Reversal</a>
+			<a href="#sec8">8. The Butterfly</a>
+			<a href="#sec9">9. Complexity</a>
+			<a href="#sec10">10. Worked Example</a>
 		</div>
 
 		<div class="notes-section" id="sec1">
-			<h3>1 — The Problem</h3>
-			<p>Given <code>n</code> complex samples <code>x[0..n−1]</code>, compute the <strong>Discrete Fourier Transform (DFT)</strong>:</p>
-			<div class="formula">X[k] = ∑(j=0..n−1) x[j] · ω<sup>j·k</sup>,&nbsp; ω = e<sup>−2πi/n</sup></div>
+			<h3>1 — The Problem &amp; Why It Matters</h3>
+			<p>Imagine you record a piano chord on your laptop. The microphone produces a long list of numbers — each one the air pressure at a moment in time. Looking at that list directly tells you almost nothing: it's just a wiggly curve. The natural question is:</p>
+			<blockquote>"Which pure musical notes (sine waves) was this sound made from, and how loud is each one?"</blockquote>
+			<p>The <strong>Discrete Fourier Transform (DFT)</strong> answers exactly this question — not just for sound, but for any sequence of samples. It takes <code>n</code> numbers describing a signal in <em>time</em> and produces <code>n</code> numbers describing the same signal as a sum of <em>frequencies</em>. The two views are equivalent; the frequency view is just often the more useful one.</p>
+
+			<h4>Where the DFT shows up in real life</h4>
+			<ul>
+				<li><strong>Audio</strong> — MP3 / AAC keep only the loudest frequencies the ear can hear and throw the rest away.</li>
+				<li><strong>Images</strong> — JPEG compresses each 8×8 block by zeroing tiny frequency components.</li>
+				<li><strong>Wireless</strong> — 5G, Wi-Fi and DSL all use OFDM, which is literally "send data on many DFT frequencies at once".</li>
+				<li><strong>Medicine</strong> — an MRI scanner measures the 2-D Fourier transform of your body and inverts it to get the picture.</li>
+				<li><strong>Engineering</strong> — vibration spectra of rotating machinery reveal failing bearings before they break.</li>
+			</ul>
+
+			<h4>The formal problem</h4>
+			<p>Given <code>n</code> complex samples <code>x[0], x[1], …, x[n−1]</code>, compute the <code>n</code> frequency-domain values <code>X[0], …, X[n−1]</code> defined by:</p>
+			<div class="formula">X[k] = ∑<sub>j=0..n−1</sub> x[j] · ω<sup>j·k</sup>,&nbsp; where ω = e<sup>−2πi/n</sup></div>
+
 			<div class="key-concept">
-				<div class="kc-title">Goal</div>
-				<p>Compute all <code>n</code> frequency bins in <code>O(n log n)</code> instead of the naive <code>O(n²)</code>, using the Cooley-Tukey FFT (1965).</p>
+				<div class="kc-title">The whole goal</div>
+				<p>The naive way of computing this takes <code>O(n²)</code> arithmetic — fine for <code>n = 100</code>, hopeless for <code>n = 10⁶</code>. The <strong>Fast Fourier Transform</strong> (FFT, Cooley &amp; Tukey 1965) gets the same answer in <code>O(n log n)</code>. That speed-up is what makes modern audio, video, wireless and medical imaging possible.</p>
 			</div>
 		</div>
 
 		<div class="notes-section" id="sec2">
-			<h3>2 — Naive DFT</h3>
-			<p>Direct evaluation: each output <code>X[k]</code> is a length-<code>n</code> dot product. <code>n</code> outputs × <code>n</code> terms each = <strong>O(n²)</strong> complex multiplies. Equivalent to the matrix-vector product <code>X = F<sub>n</sub> · x</code> where <code>F<sub>n</sub>[j,k] = ω<sup>j·k</sup></code>.</p>
+			<h3>2 — Background: Complex Exponentials</h3>
+			<p>The DFT formula uses complex numbers. If you haven't seen them in a while, this section is the only piece of math you really need.</p>
+
+			<h4>Why complex numbers?</h4>
+			<p>A pure sine wave has two pieces of information: an <strong>amplitude</strong> (how loud) and a <strong>phase</strong> (where it is in its cycle — peak now? trough now?). One real number cannot encode both. A complex number can: think of it as a 2-D arrow on a plane, where length = amplitude and angle = phase.</p>
+
+			<h4>Euler's formula</h4>
+			<div class="formula">e<sup>iθ</sup> = cos(θ) + i·sin(θ)</div>
+			<p>Geometrically: <code>e<sup>iθ</sup></code> is an arrow of length 1, pointed at angle <code>θ</code> measured counter-clockwise from the positive real axis. As <code>θ</code> grows, the arrow spins around the unit circle. That is all you need to picture.</p>
+
+			<h4>The DFT's basic rotation</h4>
+			<div class="formula">ω = e<sup>−2πi/n</sup></div>
+			<p>This is one rotation by <code>−2π/n</code> radians (i.e. <code>360°/n</code> clockwise). Then:</p>
+			<ul>
+				<li><code>ω<sup>0</sup> = 1</code> (no rotation)</li>
+				<li><code>ω<sup>1</sup></code> = one tick clockwise</li>
+				<li><code>ω<sup>2</sup></code> = two ticks clockwise</li>
+				<li>… <code>ω<sup>n</sup> = 1</code> again — we're back where we started after <code>n</code> ticks.</li>
+			</ul>
+			<p>The <code>n</code> values <code>ω<sup>0</sup>, ω<sup>1</sup>, …, ω<sup>n−1</sup></code> are exactly <code>n</code> equally-spaced points around the unit circle, called the <strong><code>n</code>-th roots of unity</strong>.</p>
+
+			<div class="highlight-box">
+				<p><strong>Two facts to remember.</strong> Halfway around the circle is the negative real axis: <code>ω<sup>n/2</sup> = −1</code>. Therefore <code>ω<sup>k + n/2</sup> = −ω<sup>k</sup></code>. This single minus-sign symmetry is the entire reason the FFT exists.</p>
+			</div>
 		</div>
 
 		<div class="notes-section" id="sec3">
-			<h3>3 — Roots of Unity &amp; DFT Matrix</h3>
-			<p>The <code>n</code>-th roots of unity <code>ω<sup>0</sup>, ω<sup>1</sup>, …, ω<sup>n−1</sup></code> are equally spaced points on the unit circle. The DFT matrix <code>F<sub>n</sub>[j,k] = ω<sup>j·k</sup></code> entries are powers of these roots; phase is <code>−2π·jk/n</code>.</p>
-			<div class="key-concept">
-				<div class="kc-title">Symmetry properties</div>
-				<p><code>ω<sup>n/2</sup> = −1</code> &nbsp;and&nbsp; <code>ω<sup>k+n/2</sup> = −ω<sup>k</sup></code> — the algebraic basis for the FFT split.</p>
-			</div>
+			<h3>3 — What the DFT formula actually computes</h3>
+			<p>Look again at one output:</p>
+			<div class="formula">X[k] = ∑<sub>j=0..n−1</sub> x[j] · ω<sup>j·k</sup></div>
+			<p>For a fixed <code>k</code>, the second factor <code>ω<sup>j·k</sup></code> is a "test wave" that completes exactly <code>k</code> full rotations as <code>j</code> sweeps from 0 to <code>n−1</code>. So <code>X[k]</code> is the dot product of the input signal with that test wave.</p>
+
+			<blockquote>Read each <code>X[k]</code> as: "How strongly does my signal resemble a wave that completes <code>k</code> cycles in this window?"</blockquote>
+
+			<p>If the signal really contains a strong component at frequency <code>k</code>, that test wave lines up with it term-by-term and the sum is large. If the signal has nothing to do with frequency <code>k</code>, the rotating terms point in every direction and cancel out — the sum is near zero.</p>
+
+			<h4>Reading individual bins</h4>
+			<ul>
+				<li><code>X[0]</code> = sum of all samples = <code>n</code> × the average. The DC / constant-offset component.</li>
+				<li><code>X[1]</code> = strength of "exactly one cycle across the window".</li>
+				<li><code>X[n/2]</code> = the highest detectable frequency (the Nyquist bin: oscillating at every sample).</li>
+				<li><code>X[k]</code> for <code>k &gt; n/2</code> = mirror image of low frequencies (a quirk of how negative frequencies wrap around).</li>
+			</ul>
 		</div>
 
 		<div class="notes-section" id="sec4">
-			<h3>4 — Cooley-Tukey Decomposition</h3>
-			<p>Split the input by index parity into <code>x_even</code> and <code>x_odd</code>. Compute their DFTs <code>E[k]</code> and <code>O[k]</code>, then recombine:</p>
-			<div class="formula">X[k] = E[k] + ω<sup>k</sup>·O[k] &nbsp;&nbsp; X[k+n/2] = E[k] − ω<sup>k</sup>·O[k] &nbsp;&nbsp; for k = 0..n/2−1</div>
-			<p>Two outputs share the same <code>E[k]</code> and <code>ω<sup>k</sup>·O[k]</code> — that reuse is what collapses the cost from <code>O(n²)</code> to <code>O(n log n)</code>.</p>
+			<h3>4 — Naive DFT and Why It's Slow</h3>
+			<p>The most direct way to compute the DFT is to translate the formula straight into code: for each <code>k</code> from 0 to <code>n−1</code>, run a loop that adds up the <code>n</code> products. That's two nested loops:</p>
+			<div class="worked-example">for k = 0 .. n-1:
+    X[k] = 0
+    for j = 0 .. n-1:
+        X[k] += x[j] * ω^(j*k)</div>
+
+			<p>Each output is <code>n</code> multiplies + <code>n</code> adds; we have <code>n</code> outputs; total work = <strong><code>O(n²)</code></strong> complex multiplies.</p>
+
+			<h4>Matrix view (same thing, different lens)</h4>
+			<p>You can write all <code>n</code> equations at once as a single matrix-vector multiplication:</p>
+			<div class="formula">X = F<sub>n</sub> · x &nbsp;&nbsp;where&nbsp; F<sub>n</sub>[j, k] = ω<sup>j·k</sup></div>
+			<p><code>F<sub>n</sub></code> is the DFT matrix. Multiplying an <code>n×n</code> matrix by a vector is <code>O(n²)</code> — same answer, just packaged differently.</p>
+
+			<h4>Why we need to do better</h4>
+			<table class="complexity-table">
+				<tr><th>n</th><th>Naive multiplies</th><th>Practical?</th></tr>
+				<tr><td>1 024 (1 sec audio at 1 kHz)</td><td>~10⁶</td><td>fine</td></tr>
+				<tr><td>1 048 576 (~24 sec hi-fi)</td><td>~10¹²</td><td style="color:var(--red)">hours</td></tr>
+				<tr><td>10⁹ (a 4K image, 2-D)</td><td>~10¹⁸</td><td style="color:var(--red)">impossible</td></tr>
+			</table>
+			<p>The naive approach treats <code>F<sub>n</sub></code> as if its entries were random numbers. They are not — they are powers of one root <code>ω</code>, with deep symmetries. The FFT is the algorithm that <em>uses</em> those symmetries.</p>
 		</div>
 
 		<div class="notes-section" id="sec5">
-			<h3>5 — Bit-Reversal</h3>
-			<p>The iterative FFT processes the array in-place but needs the same dependency order as the recursive form. Reordering inputs by <strong>bit-reversal of the index</strong> produces exactly that order.</p>
+			<h3>5 — Roots of Unity &amp; The Symmetries the FFT Exploits</h3>
+			<p>Pictures help. Take <code>n = 8</code>. The eight points <code>ω<sup>0</sup>, …, ω<sup>7</sup></code> sit at clock positions 12, 1:30, 3, 4:30, 6, 7:30, 9, 10:30 (going clockwise). For <code>n = 4</code>, only four positions remain: 12, 3, 6, 9 — that is, <code>1, −i, −1, i</code>.</p>
+
 			<div class="key-concept">
-				<div class="kc-title">Why it works</div>
-				<p>Recursive splits separate even/odd indices repeatedly. Bit-reversal of <code>i</code> places it next to indices that share its full recursion path, so the iterative loop combines the right pairs at every stage.</p>
+				<div class="kc-title">Three properties that make the FFT possible</div>
+				<p><strong>1. Periodic.</strong> <code>ω<sup>n</sup> = 1</code>, so exponents wrap around modulo <code>n</code>.</p>
+				<p><strong>2. Half-rotation flips sign.</strong> <code>ω<sup>n/2</sup> = −1</code>, hence <code>ω<sup>k + n/2</sup> = −ω<sup>k</sup></code>. <span style="color:var(--amber)">→ two outputs can share one multiply.</span></p>
+				<p><strong>3. Squaring halves the size.</strong> <code>(ω<sub>n</sub>)² = ω<sub>n/2</sub></code>. <span style="color:var(--amber)">→ a problem of size <code>n</code> hides two problems of size <code>n/2</code>.</span></p>
 			</div>
+
+			<p>Property 3 is the divide-and-conquer key; property 2 is the recombine-cheaply key. Together they give us <code>O(n log n)</code>.</p>
 		</div>
 
 		<div class="notes-section" id="sec6">
-			<h3>6 — Butterfly Operation</h3>
-			<p>The fundamental compute unit. Inputs <code>u, v</code> and twiddle <code>w</code>:</p>
-			<div class="worked-example">t       = w · v
-top     = u + t
-bottom  = u − t</div>
-			<p>One complex multiply, one add, one subtract. Each stage applies <code>n/2</code> butterflies; there are <code>log₂ n</code> stages.</p>
+			<h3>6 — Cooley-Tukey: The Divide-and-Conquer Trick</h3>
+			<p>Cooley &amp; Tukey's idea (1965, though Gauss knew a version of it in 1805) is a textbook divide-and-conquer:</p>
+
+			<h4>Step 1 — Split by even/odd indices</h4>
+			<p>Take the input <code>x[0..n−1]</code> and pull out the even-indexed and odd-indexed samples:</p>
+			<div class="worked-example">x_even = [ x[0], x[2], x[4], …, x[n-2] ]   (n/2 samples)
+x_odd  = [ x[1], x[3], x[5], …, x[n-1] ]   (n/2 samples)</div>
+
+			<h4>Step 2 — Recursively compute their DFTs</h4>
+			<p>Let <code>E[k]</code> = DFT of <code>x_even</code> at bin <code>k</code>, and <code>O[k]</code> = DFT of <code>x_odd</code> at bin <code>k</code>, for <code>k = 0 .. n/2 − 1</code>. Each is a half-size FFT.</p>
+
+			<h4>Step 3 — Combine in one cheap pass</h4>
+			<p>A few lines of algebra (using <code>(ω<sub>n</sub>)² = ω<sub>n/2</sub></code>) give the magical identity:</p>
+			<div class="formula">X[k]       = E[k] + ω<sup>k</sup> · O[k]
+X[k + n/2] = E[k] − ω<sup>k</sup> · O[k]
+for k = 0 .. n/2 − 1</div>
+
+			<p>The two formulas share the same <code>E[k]</code> and the same product <code>ω<sup>k</sup>·O[k]</code> — only the sign flips. The minus sign comes free from <code>ω<sup>k+n/2</sup> = −ω<sup>k</sup></code>. So with <strong>one multiply</strong> we produce <strong>two outputs</strong>, instead of two separate <code>O(n)</code> dot products.</p>
+
+			<h4>Why this gives O(n log n)</h4>
+			<p>Let <code>T(n)</code> be the time to FFT <code>n</code> samples. We solved one size-<code>n</code> problem using two size-<code>n/2</code> sub-problems plus an <code>O(n)</code> combine pass:</p>
+			<div class="formula">T(n) = 2 · T(n/2) + O(n)&nbsp;⇒&nbsp; T(n) = O(n log n)</div>
+			<p>The recursion tree has depth <code>log₂ n</code> and does <code>O(n)</code> total work per level — exactly the merge-sort recurrence.</p>
 		</div>
 
 		<div class="notes-section" id="sec7">
-			<h3>7 — Complexity</h3>
+			<h3>7 — Bit-Reversal Permutation</h3>
+			<p>The recursive form is conceptually clean but every recursive call allocates new arrays. Real implementations work <strong>in-place</strong>: one buffer of size <code>n</code>, overwritten stage by stage. To make that work, the input has to start in the order the recursion would have produced — and that order turns out to be <em>bit-reversal of the index</em>.</p>
+
+			<h4>Example for n = 8 (3-bit indices)</h4>
+			<div class="worked-example">index   binary    reversed   →  new position
+0       000       000           0
+1       001       100           4
+2       010       010           2
+3       011       110           6
+4       100       001           1
+5       101       101           5
+6       110       011           3
+7       111       111           7</div>
+
+			<h4>Why bit-reversal?</h4>
+			<p>Each recursive split separates even from odd, which means it sorts indices by their lowest bit. The next deeper split sorts by the next bit, and so on. After all <code>log₂ n</code> splits, an index ends up next to indices that share all its bits — but read from least-significant to most-significant. Reversing the bits is exactly that re-ordering, done in one shot.</p>
+
+			<div class="key-concept">
+				<div class="kc-title">After permuting, the iterative loop is trivial</div>
+				<p>Stage 1 combines pairs <code>(0,1), (2,3), (4,5), (6,7)</code>. Stage 2 combines blocks of 4. Stage <code>log n</code> merges the two halves. No further reshuffling — every butterfly's inputs are right next to each other in memory.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec8">
+			<h3>8 — The Butterfly Operation</h3>
+			<p>Each FFT stage is built entirely out of one repeating gadget. Drawn as a data-flow diagram its two crossing lines look like a butterfly's wings — hence the name.</p>
+
+			<h4>One butterfly</h4>
+			<div class="worked-example">inputs:   u, v       (two complex numbers from the previous stage)
+twiddle:  w = ω^k    (a fixed root of unity for this position)
+
+t       = w · v          // 1 complex multiply
+top     = u + t          // 1 complex add
+bottom  = u − t          // 1 complex subtract</div>
+
+			<p>That's the entire computational core of the FFT. <code>top</code> is written back to where <code>u</code> was; <code>bottom</code> is written back to where <code>v</code> was. The original values are gone, but they aren't needed anymore.</p>
+
+			<h4>Stage structure</h4>
+			<ul>
+				<li>Each stage = <code>n/2</code> independent butterflies (no two share inputs).</li>
+				<li>There are <code>log₂ n</code> stages.</li>
+				<li>Total: <code>(n/2) · log₂ n</code> complex multiplies, <code>n · log₂ n</code> complex add/subtracts.</li>
+			</ul>
+
+			<div class="highlight-box">
+				<p><strong>Why "circuit"?</strong> Because every butterfly in a single stage is independent of every other, you can run them all in parallel. In hardware (FPGA, DSP, GPU) one stage finishes in a single clock tick — <strong>circuit depth is <code>O(log n)</code></strong>, even though gate count is <code>O(n log n)</code>. That parallel structure is why FFT chips can decode Wi-Fi packets in microseconds.</p>
+			</div>
+		</div>
+
+		<div class="notes-section" id="sec9">
+			<h3>9 — Complexity</h3>
 			<table class="complexity-table">
 				<tr><th>Method</th><th>Time</th><th>Circuit depth</th></tr>
 				<tr><td>Naive DFT</td><td style="color:var(--red)">O(n²)</td><td>O(1)</td></tr>
 				<tr><td>FFT (Cooley-Tukey)</td><td style="color:var(--green)">O(n log n)</td><td style="color:var(--green)">O(log n)</td></tr>
 			</table>
-			<p>FFT gate count is <code>O(n log n)</code>; depth <code>O(log n)</code>. Each of the <code>log₂ n</code> stages can run all <code>n/2</code> butterflies in parallel.</p>
+
+			<h4>What that means in practice</h4>
+			<table class="complexity-table">
+				<tr><th>n</th><th>Naive ≈ n²</th><th>FFT ≈ n log₂ n</th><th>Speed-up</th></tr>
+				<tr><td>16</td><td>256</td><td>64</td><td>4×</td></tr>
+				<tr><td>1 024</td><td>1 048 576</td><td>10 240</td><td>~100×</td></tr>
+				<tr><td>1 048 576</td><td>~10¹²</td><td>~2·10⁷</td><td>~50 000×</td></tr>
+			</table>
+
+			<p>The gap between <code>n²</code> and <code>n log n</code> grows without bound, which is why the FFT is regularly listed among the most consequential algorithms ever invented. Doubling the input size doubles FFT cost (plus a tiny bit) but <em>quadruples</em> naive cost.</p>
 		</div>
 
-		<div class="notes-section" id="sec8">
-			<h3>8 — Worked Example (N = 4)</h3>
-			<div class="worked-example">x = [1, 1, 1, 1]   (constant signal, ω = e^(-iπ/2) = -i)
+		<div class="notes-section" id="sec10">
+			<h3>10 — Worked Example (N = 4)</h3>
+			<p>Let's do one fully by hand on a tiny input. Take <code>n = 4</code>, so <code>ω = e<sup>−iπ/2</sup> = −i</code>. The powers cycle: <code>ω⁰=1, ω¹=−i, ω²=−1, ω³=i</code>.</p>
 
-X[0] = 1 + 1 + 1 + 1            = 4
-X[1] = 1 + ω + ω² + ω³          = 0
-X[2] = 1 - 1 + 1 - 1            = 0
-X[3] = 1 + ω³ + ω⁶ + ω⁹         = 0
+			<h4>Input</h4>
+			<div class="worked-example">x = [ 1, 1, 1, 1 ]   (a perfectly flat / constant signal)</div>
 
-→ X = [4, 0, 0, 0]   (all energy in DC bin)</div>
+			<h4>Plug into the formula</h4>
+			<div class="worked-example">X[0] = 1·1 + 1·1   + 1·1   + 1·1     = 4
+X[1] = 1·1 + 1·ω   + 1·ω²  + 1·ω³    = 1 + (−i) + (−1) + i  = 0
+X[2] = 1·1 + 1·ω²  + 1·ω⁴  + 1·ω⁶   = 1 + (−1) + 1 + (−1)   = 0
+X[3] = 1·1 + 1·ω³  + 1·ω⁶  + 1·ω⁹   = 1 + i + (−1) + (−i)   = 0
+
+→ X = [ 4, 0, 0, 0 ]</div>
+
+			<h4>Reading the answer</h4>
+			<p>All the energy landed in bin 0. That's exactly right: a constant signal contains no oscillation — only DC. <code>X[0] = 4</code> is just <code>n</code> times the average value of the input. Every other frequency bin is zero because the rotating test waves perfectly cancel against a flat input.</p>
+
+			<div class="key-concept">
+				<div class="kc-title">Try the visualizer below</div>
+				<p>Switch to the "Square Wave" or "Chirp" preset and watch the same algorithm reveal a richer spectrum — and watch the butterfly stages walk you through how the FFT computes those answers in <code>O(n log n)</code>.</p>
+			</div>
 		</div>
 	</div>
 </section>
