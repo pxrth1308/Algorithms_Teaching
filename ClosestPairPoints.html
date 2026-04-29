@@ -87,6 +87,11 @@ header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
 }
 .algo-tab:hover { background: rgba(56,189,248,0.08); color: var(--text); }
 .algo-tab.active { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.45); color: var(--accent); }
+.algo-tab.home {
+	background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.4);
+	color: var(--purple); margin-left: auto;
+}
+.algo-tab.home:hover { background: rgba(167,139,250,0.22); color: var(--text); }
 
 .roadmap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .roadmap a {
@@ -101,9 +106,19 @@ header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
 	font-size: 14px; font-weight: 600; color: var(--accent);
 	margin-bottom: 8px; border-left: 3px solid var(--accent); padding-left: 10px;
 }
+.notes-section h4 {
+	font-size: 12px; font-weight: 600; color: var(--amber);
+	margin: 12px 0 6px; letter-spacing: 0.2px;
+}
 .notes-section p { color: var(--text-dim); line-height: 1.65; margin-bottom: 8px; }
 .notes-section ul { margin: 8px 0 8px 20px; color: var(--text-dim); line-height: 1.85; }
 .notes-section li { margin-bottom: 4px; }
+.notes-section blockquote {
+	border-left: 3px solid var(--purple);
+	background: rgba(167,139,250,0.06);
+	padding: 8px 12px; margin: 10px 0;
+	color: var(--text); font-style: italic; font-size: 12.5px; line-height: 1.6;
+}
 .notes-section code {
 	background: var(--panel2); color: var(--teal);
 	padding: 1px 5px; border-radius: 3px;
@@ -367,6 +382,7 @@ input[type=range]::-webkit-slider-thumb {
 	<button class="algo-tab" onclick="location.href='ChineseRemainder_RSA.html'">Part 2: CRT / RSA-CRT</button>
 	<button class="algo-tab active" onclick="location.href='ClosestPairPoints.html'">Part 3: Closest Pair of Points</button>
 	<button class="algo-tab" onclick="location.href='FPTAS.html'">Part 4: FPTAS</button>
+	<button class="algo-tab home" onclick="location.href='index.html'">Home →</button>
 </nav>
 
 <section id="lecture-notes">
@@ -376,87 +392,206 @@ input[type=range]::-webkit-slider-thumb {
 	</div>
 	<div class="notes-body open" id="notes-body">
 		<div class="roadmap">
-			<a href="#sec1">1. The Problem</a>
+			<a href="#sec1">1. The Problem &amp; Why It Matters</a>
 			<a href="#sec2">2. Brute Force</a>
-			<a href="#sec3">3. Divide</a>
-			<a href="#sec4">4. Conquer (Strip)</a>
-			<a href="#sec5">5. The 7-Point Lemma</a>
-			<a href="#sec6">6. Recurrence</a>
-			<a href="#sec7">7. Complexity</a>
-			<a href="#sec8">8. Worked Example</a>
+			<a href="#sec3">3. The Divide-and-Conquer Idea</a>
+			<a href="#sec4">4. Divide</a>
+			<a href="#sec5">5. The Strip</a>
+			<a href="#sec6">6. The 7-Point Lemma</a>
+			<a href="#sec7">7. Recurrence</a>
+			<a href="#sec8">8. Complexity</a>
+			<a href="#sec9">9. Worked Example</a>
 		</div>
 
 		<div class="notes-section" id="sec1">
-			<h3>1 — The Problem</h3>
-			<p>Given <code>n</code> points in the plane, find the pair with minimum Euclidean distance.</p>
+			<h3>1 — The Problem &amp; Why It Matters</h3>
+			<p>You have a list of locations on a map — cities, drones, atoms in a simulation, players in a multiplayer game — and you need to answer one question:</p>
+			<blockquote>"Of all these points, which two are closest together?"</blockquote>
+
+			<p>It sounds simple, and for a handful of points it is. The interesting bit is doing it <em>fast</em> when there are millions of points — which is exactly the regime where it matters most in practice.</p>
+
+			<h4>Where this comes up</h4>
+			<ul>
+				<li><strong>Collision detection</strong> — physics engines and games ask "are any two objects about to bump?" every frame.</li>
+				<li><strong>Air-traffic control</strong> — the system that warns "two aircraft on a near-collision course."</li>
+				<li><strong>Geographic search</strong> — "find the nearest hospital / store / gas station."</li>
+				<li><strong>Bioinformatics &amp; clustering</strong> — "which two DNA samples (encoded as vectors) are most similar?"</li>
+				<li><strong>Computer vision</strong> — matching feature points between two photographs.</li>
+			</ul>
+
+			<h4>The formal problem</h4>
+			<p>Given <code>n</code> points <code>P_1, P_2, …, P_n</code> in the plane, find the pair <code>(P_i, P_j)</code> with minimum Euclidean distance:</p>
+			<div class="formula">dist(P_i, P_j) = √( (x_i − x_j)² + (y_i − y_j)² )</div>
+
 			<div class="key-concept">
 				<div class="kc-title">Goal</div>
-				<p>Solve in <code>O(n log n)</code> using divide-and-conquer instead of the naive <code>O(n²)</code> all-pairs scan.</p>
+				<p>Solve this in <code>O(n log n)</code> — much faster than the naive <code>O(n²)</code> of comparing every possible pair. At <code>n = 10⁶</code> that's the difference between <code>~5·10¹¹</code> and <code>~2·10⁷</code> operations: a 25 000× speed-up.</p>
 			</div>
 		</div>
 
 		<div class="notes-section" id="sec2">
-			<h3>2 — Brute Force Baseline</h3>
-			<p>Compare every pair: <code>n(n−1)/2</code> distance computations, giving <code>O(n²)</code>. Fine for small inputs but quadratic growth quickly becomes prohibitive.</p>
+			<h3>2 — Brute-Force Baseline</h3>
+			<p>The most direct algorithm: compute every pair's distance and remember the smallest:</p>
+			<div class="worked-example">best = ∞
+for i = 0 .. n−1:
+    for j = i+1 .. n−1:
+        d = dist(P[i], P[j])
+        if d &lt; best:  best = d, bestPair = (i, j)
+return bestPair</div>
+
+			<p>This makes <code>n(n−1)/2 ≈ n²/2</code> distance computations — <strong>O(n²)</strong>.</p>
+
+			<table class="complexity-table">
+				<tr><th>n</th><th>Pairs</th><th>Practical?</th></tr>
+				<tr><td>100</td><td>4 950</td><td>instant</td></tr>
+				<tr><td>10 000</td><td>~5 · 10⁷</td><td>seconds</td></tr>
+				<tr><td>1 000 000</td><td>~5 · 10¹¹</td><td style="color:var(--red)">hours</td></tr>
+			</table>
+
+			<p>We need to avoid examining every pair. The key observation: most pairs are obviously far apart and we shouldn't waste time on them. The challenge is recognizing that fact without inspecting each pair individually — which is exactly what divide-and-conquer accomplishes.</p>
 		</div>
 
 		<div class="notes-section" id="sec3">
-			<h3>3 — Divide</h3>
-			<p>Sort points by x-coordinate once. At each level, split the sorted list at the median into <strong>L</strong> (left half) and <strong>R</strong> (right half). Recursively find the closest pair in each half.</p>
+			<h3>3 — The Big Idea: Divide and Conquer</h3>
+			<p>Imagine drawing a vertical line that splits the points into a left half and a right half. The closest pair in the entire set must be one of three things:</p>
+			<ul>
+				<li>both points in the left half</li>
+				<li>both points in the right half</li>
+				<li>one in each half (a "cross-boundary" pair)</li>
+			</ul>
+
+			<p>The first two cases are smaller versions of the same problem — perfect for recursion. The cross-boundary case is what makes the algorithm interesting.</p>
+
 			<div class="key-concept">
-				<div class="kc-title">Sub-results</div>
-				<p>Let <code>δ_L</code> and <code>δ_R</code> be the closest distances returned by the two halves. Set <code>δ = min(δ_L, δ_R)</code>.</p>
+				<div class="kc-title">The crucial leverage</div>
+				<p>After recursing, we already know the best distance <code>δ</code> from each half. <em>Any cross-pair worth caring about must beat δ</em>. Both points of such a pair must therefore lie within horizontal distance <code>δ</code> of the split line — otherwise their x-gap alone is already more than δ. So we only need to search a thin <strong>strip</strong> of width <code>2δ</code> around the splitter.</p>
 			</div>
+
+			<h4>The full plan, in one breath</h4>
+			<ul>
+				<li><strong>Divide.</strong> Split the x-sorted points in half at the median x.</li>
+				<li><strong>Conquer.</strong> Recursively find the closest pair in each half. Take <code>δ = min(δ_L, δ_R)</code>.</li>
+				<li><strong>Combine.</strong> Scan the strip of width <code>2δ</code> for any cross-pair beating <code>δ</code>. Return the overall best.</li>
+			</ul>
 		</div>
 
 		<div class="notes-section" id="sec4">
-			<h3>4 — Conquer: The Strip</h3>
-			<p>The closest pair could still straddle the split line. Build a <strong>strip</strong> of all points whose x-coordinate is within <code>δ</code> of the split line, sorted by y-coordinate.</p>
-			<div class="key-concept">
-				<div class="kc-title">Why a strip?</div>
-				<p>Any cross-boundary pair closer than <code>δ</code> must lie within horizontal distance <code>δ</code> of the split — otherwise their x-gap alone already exceeds <code>δ</code>.</p>
+			<h3>4 — Divide</h3>
+			<p>Before the first recursive call, sort all points by x once. Maintain a y-sorted view as well — both views can be carried through the recursion in <code>O(n)</code> per level instead of re-sorting.</p>
+
+			<h4>Splitting</h4>
+			<p>At each call, take the median index. The x-coordinate at that index defines the splitter line. Everything to the left becomes <code>L</code>, everything to the right becomes <code>R</code>:</p>
+			<div class="worked-example">mid    = ⌊|P| / 2⌋
+splitX = P_x[mid].x
+L      = P_x[0..mid−1]      (n/2 points)
+R      = P_x[mid..n−1]      (n/2 points)</div>
+
+			<p>Recurse on each half. They each return their own closest-pair distance: <code>δ_L</code> and <code>δ_R</code>.</p>
+
+			<div class="highlight-box">
+				<p><strong>Base case.</strong> Once a sub-problem has 3 or fewer points, just brute-force it. With ≤ 3 points only ≤ 3 pairs exist, and brute force avoids further recursion overhead.</p>
 			</div>
 		</div>
 
 		<div class="notes-section" id="sec5">
-			<h3>5 — The 7-Point Lemma</h3>
-			<p>Scanning the strip in y-order, each point only needs to be compared with the next <strong>≤ 7</strong> points.</p>
-			<div class="highlight-box">
-				<p><strong>Geometric argument:</strong> Points already-better-than-<code>δ</code> are at least <code>δ</code> apart from each other. A <code>δ × 2δ</code> rectangle therefore contains at most 8 such points (a 2×4 grid of <code>δ/2</code> cells), so any candidate cross-pair must appear within 7 positions of the current point in y-order.</p>
+			<h3>5 — The Strip (Conquer Step)</h3>
+			<p>After both halves return, set <code>δ = min(δ_L, δ_R)</code>. Now we hunt for any cross-pair that beats <code>δ</code>.</p>
+
+			<h4>Building the strip</h4>
+			<p>Collect every point within horizontal distance <code>δ</code> of the splitter:</p>
+			<div class="formula">strip = { p ∈ P : | p.x − splitX | &lt; δ }</div>
+			<p>Sort the strip by y-coordinate (or extract from the maintained y-sorted view).</p>
+
+			<div class="key-concept">
+				<div class="kc-title">Why this is enough</div>
+				<p>Suppose a cross-pair <code>(p, q)</code> has <code>dist(p, q) &lt; δ</code>. Their horizontal gap satisfies <code>|p.x − q.x| ≤ dist(p, q) &lt; δ</code>. Since one is in <code>L</code> (so <code>p.x ≤ splitX</code>) and the other is in <code>R</code> (so <code>q.x ≥ splitX</code>), both must sit within distance <code>δ</code> of the splitter. So any cross-pair we care about lives entirely inside the strip.</p>
 			</div>
+
+			<h4>What if the strip is large?</h4>
+			<p>The strip can hold up to <code>n</code> points in pathological cases. Naively scanning all pairs in the strip is <code>O(strip²)</code>, which would wreck the algorithm. The 7-Point Lemma rescues us.</p>
 		</div>
 
 		<div class="notes-section" id="sec6">
-			<h3>6 — Recurrence</h3>
-			<p>Two recursive calls of size <code>n/2</code> plus a linear strip scan:</p>
-			<div class="formula">T(n) = 2 · T(n/2) + O(n)  →  T(n) = O(n log n)</div>
-			<p>(Master Theorem, case 2.) The initial sort is also <code>O(n log n)</code> and is amortized once across all levels by maintaining a y-sorted view.</p>
+			<h3>6 — The 7-Point Lemma (Why the Strip Scan is Linear)</h3>
+			<p>Walk the strip in increasing y. For each point <code>p</code>, only compare it against the next <strong>≤ 7</strong> points in the y-order. That's it. The whole strip scan is <code>O(strip size)</code>.</p>
+
+			<div class="highlight-box">
+				<p><strong>Geometric proof sketch.</strong> Inside the strip, no two points from <em>the same side</em> can be closer than <code>δ</code> to each other (otherwise that half's recursion would already have found a smaller δ). Now look at the <code>2δ × δ</code> rectangle above any point <code>p</code>. Tile that rectangle with <code>δ/2 × δ/2</code> sub-cells — that's a 4 × 2 = 8-cell grid. Each sub-cell can hold at most one point (any two points in a single δ/2 × δ/2 cell would be &lt; δ apart, but they're forced to be ≥ δ apart). So the 2δ × δ window contains at most 8 points, including <code>p</code> itself — hence <strong>at most 7 candidates</strong> to compare against.</p>
+			</div>
+
+			<h4>The scan in code</h4>
+			<div class="worked-example">for i = 0 .. |strip|−1:
+    for j = i+1 .. min(i+7, |strip|−1):
+        if strip[j].y − strip[i].y ≥ δ:  break    // can't improve any further
+        d = dist(strip[i], strip[j])
+        if d &lt; δ:
+            δ = d
+            bestPair = (strip[i], strip[j])</div>
+			<p>The inner loop is bounded by a constant (7), so the entire strip scan is <code>O(|strip|) ≤ O(n)</code>.</p>
 		</div>
 
 		<div class="notes-section" id="sec7">
-			<h3>7 — Complexity</h3>
-			<table class="complexity-table">
-				<tr><th>Method</th><th>Time</th><th>Notes</th></tr>
-				<tr><td>Brute force</td><td style="color:var(--red)">O(n²)</td><td>Compare all pairs</td></tr>
-				<tr><td>Divide &amp; Conquer</td><td style="color:var(--green)">O(n log n)</td><td>Sort + recursive halves + strip scan</td></tr>
-			</table>
+			<h3>7 — Recurrence &amp; Why It Gives O(n log n)</h3>
+			<p>Combining the three steps: each call solves two sub-problems of size <code>n/2</code>, then does <code>O(n)</code> linear strip work to combine.</p>
+
+			<div class="formula">T(n) = 2 · T(n/2) + O(n)   ⇒   T(n) = O(n log n)</div>
+
+			<p>This is exactly the merge-sort recurrence (Master Theorem, case 2). The recursion tree has depth <code>log₂ n</code>; each level performs <code>O(n)</code> total work; multiplying gives <code>O(n log n)</code>.</p>
+
+			<p>The initial sort is also <code>O(n log n)</code>. By maintaining a y-sorted view alongside the x-sorted view (filter into left/right at each level in <code>O(n)</code>), no further sorting is needed inside the recursion — that's how the strip step stays linear instead of <code>O(n log n)</code> per level.</p>
 		</div>
 
 		<div class="notes-section" id="sec8">
-			<h3>8 — Worked Example</h3>
+			<h3>8 — Complexity</h3>
+			<table class="complexity-table">
+				<tr><th>Method</th><th>Time</th><th>Note</th></tr>
+				<tr><td>Brute force</td><td style="color:var(--red)">O(n²)</td><td>Compare every pair</td></tr>
+				<tr><td>Divide &amp; Conquer</td><td style="color:var(--green)">O(n log n)</td><td>Sort + recursive halves + linear strip scan</td></tr>
+			</table>
+
+			<h4>What that means in practice</h4>
+			<table class="complexity-table">
+				<tr><th>n</th><th>Naive ≈ n²/2</th><th>D&amp;C ≈ n log₂ n</th><th>Speed-up</th></tr>
+				<tr><td>1 000</td><td>~5 · 10⁵</td><td>~10⁴</td><td>~50×</td></tr>
+				<tr><td>1 000 000</td><td>~5 · 10¹¹</td><td>~2 · 10⁷</td><td>~25 000×</td></tr>
+			</table>
+			<p>The same algorithmic shape (divide on the median, combine in a thin strip) extends to higher dimensions, with slightly larger constants in the lemma — every fast geometric query you encounter borrows from this template.</p>
+		</div>
+
+		<div class="notes-section" id="sec9">
+			<h3>9 — Worked Example</h3>
 			<div class="worked-example">Points: (1,1), (2,3), (4,2), (6,5), (7,1)
-Sort by x → already sorted.
-Split at x = 4 (median).
-  L = {(1,1), (2,3)}        δ_L = √5  ≈ 2.236
-  R = {(4,2), (6,5), (7,1)} δ_R = √13 ≈ 3.606  (base case)
-δ = min(δ_L, δ_R) = √5
 
-Strip = points with |x − 4| < √5 → (2,3), (4,2), (6,5)
-Sort strip by y, scan with 7-point window:
-  (4,2) vs (2,3):  d = √5    no improvement
-  (4,2) vs (6,5):  d = √13   no improvement (y-gap ≥ δ → break)
+Step 1 — sort by x → already sorted.
 
-Closest pair = (1,1)–(2,3),  distance = √5 ≈ 2.236</div>
+Step 2 — divide at the median x.
+  splitX = 4
+  L = {(1,1), (2,3)}                  → base case
+  R = {(4,2), (6,5), (7,1)}           → base case
+
+Step 3 — solve halves by brute force.
+  In L:  d((1,1),(2,3)) = √5  ≈ 2.236     → δ_L = √5
+  In R:  d((4,2),(6,5)) = √13 ≈ 3.606
+         d((4,2),(7,1)) = √10 ≈ 3.162
+         d((6,5),(7,1)) = √17 ≈ 4.123     → δ_R = √10 ≈ 3.162
+
+Step 4 — combine.
+  δ = min(√5, √10) = √5 ≈ 2.236
+
+Step 5 — build the strip (|x − 4| &lt; √5 ≈ 2.236).
+  Strip = {(2,3), (4,2), (6,5)}    sorted by y: (4,2), (2,3), (6,5)
+
+Step 6 — scan strip with 7-point window.
+  (4,2) vs (2,3):  d = √5 = 2.236   no improvement
+  (4,2) vs (6,5):  y-gap = 3 ≥ δ → stop window
+  (2,3) vs (6,5):  y-gap = 2 &lt; δ, d = √20 = 4.47 → no improvement
+
+Closest pair = (1,1) — (2,3),   distance = √5 ≈ 2.236</div>
+
+			<div class="key-concept">
+				<div class="kc-title">Try the visualizer below</div>
+				<p>The presets walk through harder configurations — clustered points, grids, and random spreads — where the strip scan does meaningful work and the 7-point window genuinely fires.</p>
+			</div>
 		</div>
 	</div>
 </section>
