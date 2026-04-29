@@ -152,6 +152,11 @@ header .meta {
 	border-color: rgba(56,189,248,0.45);
 	color: var(--accent);
 }
+.algo-tab.home {
+	background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.4);
+	color: var(--purple); margin-left: auto;
+}
+.algo-tab.home:hover { background: rgba(167,139,250,0.22); color: var(--text); }
 
 .roadmap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .roadmap a {
@@ -177,6 +182,12 @@ header .meta {
 	padding-left: 10px;
 }
 .notes-section h4 { font-size: 12px; font-weight: 600; color: var(--amber); margin: 12px 0 6px; }
+.notes-section blockquote {
+	border-left: 3px solid var(--purple);
+	background: rgba(167,139,250,0.06);
+	padding: 8px 12px; margin: 10px 0;
+	color: var(--text); font-style: italic; font-size: 12.5px; line-height: 1.6;
+}
 .notes-section p { color: var(--text-dim); line-height: 1.65; margin-bottom: 8px; }
 .notes-section ul { margin: 8px 0 8px 20px; color: var(--text-dim); line-height: 1.85; }
 .notes-section li { margin-bottom: 4px; }
@@ -686,6 +697,7 @@ input[type=range]::-webkit-slider-thumb {
 	<button class="algo-tab active" onclick="location.href='ChineseRemainder_RSA.html'">Part 2: CRT / RSA-CRT</button>
 	<button class="algo-tab" onclick="location.href='ClosestPairPoints.html'">Part 3: Closest Pair of Points</button>
 	<button class="algo-tab" onclick="location.href='FPTAS.html'">Part 4: FPTAS</button>
+	<button class="algo-tab home" onclick="location.href='index.html'">Home →</button>
 </nav>
 
 <!-- LECTURE NOTES -->
@@ -697,6 +709,7 @@ input[type=range]::-webkit-slider-thumb {
 	<div class="notes-body open" id="notes-body">
 		<div class="roadmap">
 			<a href="#sec1">1. The Problem</a>
+			<a href="#sec1b">1b. Modular Arithmetic Refresher</a>
 			<a href="#sec2">2. Existence</a>
 			<a href="#sec3">3. Construction</a>
 			<a href="#sec4">4. Extended Euclid</a>
@@ -707,94 +720,204 @@ input[type=range]::-webkit-slider-thumb {
 		</div>
 
 		<div class="notes-section" id="sec1">
-			<h3>1 — The Problem</h3>
-			<p>Find a single integer <code>x</code> that simultaneously satisfies <code>k</code> congruences <code>x ≡ a_i (mod n_i)</code>.</p>
+			<h3>1 — The Problem &amp; Why It Matters</h3>
+			<p>Imagine an ancient general who wants to count his soldiers but can't count them one by one — there are too many. Instead, he gives orders:</p>
+			<ul>
+				<li>Line up in groups of 3 → <em>2 soldiers left over</em></li>
+				<li>Line up in groups of 5 → <em>3 soldiers left over</em></li>
+				<li>Line up in groups of 7 → <em>2 soldiers left over</em></li>
+			</ul>
+			<p>From those three remainders alone, can he recover the total count? This is the puzzle Sun Tzu posed in 3rd-century China — and the answer is yes. The <strong>Chinese Remainder Theorem (CRT)</strong> guarantees a unique solution exists modulo <code>3 · 5 · 7 = 105</code>.</p>
+
+			<blockquote>"There are certain things whose number is unknown. Counted by threes, two are left over; by fives, three; by sevens, two. How many?" — Sun Tzu (Sunzi Suanjing, ~3rd century)</blockquote>
+
+			<h4>Where this shows up today</h4>
+			<ul>
+				<li><strong>RSA cryptography</strong> — fast decryption, the focus of this lesson.</li>
+				<li><strong>Number-theoretic FFT</strong> — exact integer convolution by working modulo several small primes.</li>
+				<li><strong>Big-integer multiplication</strong> — Schönhage-Strassen splits work across many small moduli.</li>
+				<li><strong>Coding theory</strong> — Reed-Solomon error-correcting codes.</li>
+				<li><strong>Distributed computing</strong> — combining partial results from independent workers.</li>
+			</ul>
+
+			<h4>The formal problem</h4>
+			<p>Given <code>k</code> pairs <code>(a_1, n_1), (a_2, n_2), …, (a_k, n_k)</code>, find a single integer <code>x</code> such that <code>x ≡ a_i (mod n_i)</code> for every <code>i</code>.</p>
 			<div class="key-concept">
 				<div class="kc-title">Chinese Remainder Theorem</div>
-				<p>If <code>n_1, …, n_k</code> are pairwise coprime, the system has a <strong>unique solution modulo <code>N = ∏ n_i</code></strong>.</p>
+				<p>If <code>n_1, …, n_k</code> are pairwise coprime, the system has a <strong>unique solution modulo <code>N = ∏ n_i</code></strong>. We can construct that solution explicitly in time <code>O(k · log² max n_i)</code> — far faster than searching the integers one at a time.</p>
 			</div>
+		</div>
+
+		<div class="notes-section" id="sec1b">
+			<h3>1b — Modular Arithmetic Refresher</h3>
+			<p>If "mod" feels rusty, here's the entire vocabulary you need.</p>
+
+			<h4>What does <code>a ≡ b (mod n)</code> mean?</h4>
+			<p>It reads "<code>a</code> and <code>b</code> leave the same remainder when divided by <code>n</code>" — equivalently, <code>n</code> divides <code>(a − b)</code>. The intuition is clock arithmetic: on a 12-hour clock, 17:00 and 5:00 point at the same place because <code>17 ≡ 5 (mod 12)</code>.</p>
+			<div class="worked-example">17 ≡ 5  (mod 12)        because 17 − 5 = 12 is divisible by 12
+23 ≡ 2  (mod 7)         because 23 = 3·7 + 2
+−4 ≡ 3  (mod 7)         because −4 + 7 = 3</div>
+
+			<h4>Two facts we'll use everywhere</h4>
+			<ul>
+				<li><strong>Addition and multiplication play nicely.</strong> If <code>a ≡ a' (mod n)</code> and <code>b ≡ b' (mod n)</code>, then <code>a + b ≡ a' + b' (mod n)</code> and <code>a · b ≡ a' · b' (mod n)</code>. So you can simplify intermediate results at any time.</li>
+				<li><strong>Modular inverse.</strong> <code>a<sup>−1</sup> mod n</code> is a number <code>s</code> with <code>s · a ≡ 1 (mod n)</code>. It exists <em>only when</em> <code>gcd(a, n) = 1</code>. (Section 4 shows how to compute it.)</li>
+			</ul>
+
+			<h4>What "coprime" means</h4>
+			<p>Two integers are <strong>coprime</strong> if their greatest common divisor is 1. <code>9</code> and <code>16</code> are coprime; <code>9</code> and <code>15</code> are not (they share the factor 3). "Pairwise coprime" means every pair from a list is coprime — not just that the whole list has overall gcd 1.</p>
 		</div>
 
 		<div class="notes-section" id="sec2">
 			<h3>2 — Existence (Why Coprimality Matters)</h3>
-			<p>If two moduli share a factor, the corresponding residues must agree on that factor — otherwise no <code>x</code> can satisfy both. Pairwise coprimality removes this conflict and forces a single solution.</p>
+			<p>CRT requires the moduli to be pairwise coprime. Why can't we drop that?</p>
+			<p>If two moduli <code>n_i</code> and <code>n_j</code> share a factor <code>d</code>, then both <code>x ≡ a_i (mod n_i)</code> and <code>x ≡ a_j (mod n_j)</code> force <code>x</code> to take a specific value mod <code>d</code>. If those forced values disagree, no integer can satisfy both — there is simply no solution.</p>
+
 			<div class="danger-box">
-				<p><strong>Counterexample:</strong> <code>x ≡ 0 (mod 4)</code> and <code>x ≡ 1 (mod 6)</code>. They share the factor 2 but disagree mod 2 (<code>0 ≠ 1</code>) — no solution exists.</p>
+				<p><strong>Counterexample.</strong> <code>x ≡ 0 (mod 4)</code> says <code>x</code> is divisible by 2. <code>x ≡ 1 (mod 6)</code> says <code>x</code> is odd. The two requirements contradict each other through their shared factor 2, so no <code>x</code> exists.</p>
 			</div>
+
+			<p>When all moduli are pairwise coprime, this conflict vanishes, and the theorem promises both:</p>
+			<ul>
+				<li><strong>Existence:</strong> at least one solution always exists.</li>
+				<li><strong>Uniqueness mod N:</strong> any two solutions differ by a multiple of <code>N = ∏ n_i</code>, so picking the one in <code>[0, N)</code> gives a single canonical answer.</li>
+			</ul>
 		</div>
 
 		<div class="notes-section" id="sec3">
-			<h3>3 — Construction</h3>
-			<p>Build a weighted sum that equals <code>a_i</code> mod <code>n_i</code> and zero mod every other modulus.</p>
+			<h3>3 — Construction (Building the Answer)</h3>
+			<p>How do we actually find <code>x</code>? The trick: build <code>x</code> as a sum of <code>k</code> "indicator" terms, where term <code>i</code> equals <code>a_i</code> when reduced mod <code>n_i</code> and equals <code>0</code> when reduced mod every other <code>n_j</code>. Adding them gives the right residue everywhere at once.</p>
+
+			<h4>Building blocks</h4>
 			<ul>
-				<li><code>N = n_1 · n_2 · … · n_k</code></li>
-				<li><code>N_i = N / n_i</code> &nbsp;(divisible by every other <code>n_j</code>, so <code>N_i ≡ 0 (mod n_j)</code>)</li>
-				<li><code>M_i = N_i^(-1) mod n_i</code> &nbsp;(via Extended Euclid)</li>
+				<li><code>N = n_1 · n_2 · … · n_k</code> — the total product.</li>
+				<li><code>N_i = N / n_i</code> — equals the product of all <em>other</em> moduli. Crucially, <code>n_j | N_i</code> for every <code>j ≠ i</code>, so <code>N_i ≡ 0 (mod n_j)</code> automatically.</li>
+				<li><code>M_i = N_i<sup>−1</sup> mod n_i</code> — a "correction factor" that turns <code>N_i</code> into <code>1</code> in the i-th ring. Computed via Extended Euclid (next section).</li>
 			</ul>
+
 			<div class="key-concept">
 				<div class="kc-title">CRT formula</div>
 				<div class="crt-formula">x = ( a_1·N_1·M_1 + a_2·N_2·M_2 + … + a_k·N_k·M_k )  mod  N</div>
-				<p>Reducing mod <code>n_i</code>, every term except the i-th vanishes, leaving <code>a_i</code>.</p>
+				<p>Reduce both sides mod <code>n_i</code>: every <code>N_j</code> with <code>j ≠ i</code> kills its term. Only the i-th term survives, and it simplifies to <code>a_i · 1 · 1 = a_i</code>. So <code>x ≡ a_i (mod n_i)</code> for every <code>i</code> simultaneously.</p>
 			</div>
+
+			<h4>Reading the formula intuitively</h4>
+			<p>Think of each term <code>a_i · N_i · M_i</code> as a vote: it shouts "<code>a_i</code>" at the i-th modulus and stays silent (≡ 0) everywhere else. Adding the votes produces the integer that says all <code>k</code> things at once.</p>
 		</div>
 
 		<div class="notes-section" id="sec4">
 			<h3>4 — Extended Euclid for Modular Inverses</h3>
-			<p>The Extended Euclidean Algorithm finds integers <code>s, t</code> with <code>s·a + t·n = gcd(a, n)</code>.</p>
+			<p>To compute each <code>M_i = N_i<sup>−1</sup> mod n_i</code> we need to invert a number modulo a coprime number. Standard Euclid finds <code>gcd(a, b)</code>; the <strong>Extended Euclidean Algorithm</strong> additionally returns Bézout coefficients <code>s, t</code> with:</p>
+			<div class="formula">s · a + t · b = gcd(a, b)</div>
+
 			<div class="key-concept">
-				<div class="kc-title">Bezout → inverse</div>
-				<p>If <code>gcd(a, n) = 1</code>, then <code>s·a ≡ 1 (mod n)</code>, so <code>a^(-1) ≡ s (mod n)</code>. Otherwise no inverse exists.</p>
+				<div class="kc-title">Bézout → modular inverse</div>
+				<p>Suppose <code>gcd(a, n) = 1</code>. Then <code>s · a + t · n = 1</code>. Reduce mod <code>n</code>: <code>s · a ≡ 1 (mod n)</code>. So <code>a<sup>−1</sup> ≡ s (mod n)</code>. If <code>gcd(a, n) ≠ 1</code>, no inverse exists.</p>
 			</div>
-			<p>Iterate by dividing: <code>q = ⌊r_prev / r_curr⌋</code>, then update <code>r, s, t</code> as <code>x_next = x_prev − q · x_curr</code>. Stop when <code>r = 0</code>; the previous row holds <code>(gcd, s, t)</code>.</p>
+
+			<h4>Iterative table form</h4>
+			<p>Track triples <code>(r, s, t)</code> where <code>r</code> is a remainder and <code>s, t</code> are running coefficients. At each step:</p>
+			<div class="worked-example">q       = ⌊r_prev / r_curr⌋
+r_next  = r_prev − q · r_curr
+s_next  = s_prev − q · s_curr
+t_next  = t_prev − q · t_curr</div>
+			<p>Stop when <code>r_next = 0</code>; the row before holds <code>(gcd, s, t)</code>. If you only need the inverse, only <code>s</code> matters — <code>t</code> can be skipped.</p>
 		</div>
 
 		<div class="notes-section" id="sec5">
-			<h3>5 — RSA Recap</h3>
-			<p>Pick primes <code>p, q</code>. Set <code>N = p·q</code> and <code>φ(N) = (p−1)(q−1)</code>. Choose <code>e</code> coprime to <code>φ(N)</code>; let <code>d = e^(-1) mod φ(N)</code>.</p>
+			<h3>5 — RSA Recap (the application that needs CRT)</h3>
+			<p>RSA is the world's most widely deployed asymmetric cipher. Here's the whole thing in 30 seconds.</p>
+
+			<h4>Key generation</h4>
+			<ul>
+				<li>Pick two large primes <code>p, q</code> (each typically ~1024 bits).</li>
+				<li>Compute <code>N = p · q</code> (the public modulus, ~2048 bits) and <code>φ(N) = (p−1)(q−1)</code>.</li>
+				<li>Choose a public exponent <code>e</code> coprime to <code>φ(N)</code> (often <code>65537</code>).</li>
+				<li>Compute the private exponent <code>d = e<sup>−1</sup> mod φ(N)</code>.</li>
+				<li>Public key = <code>(N, e)</code>; private key = <code>(N, d)</code> plus the factors <code>p, q</code>.</li>
+			</ul>
+
 			<div class="key-concept">
 				<div class="kc-title">Encrypt / decrypt</div>
-				<p><code>c = m^e mod N</code> &nbsp;|&nbsp; <code>m = c^d mod N</code>. Correctness follows from Euler's theorem.</p>
+				<p><code>c = m<sup>e</sup> mod N</code> (encrypt) &nbsp;|&nbsp; <code>m = c<sup>d</sup> mod N</code> (decrypt). Correctness follows from Euler's theorem; security rests on the difficulty of factoring <code>N</code>.</p>
 			</div>
-			<p>Standard decryption is one full-size modular exponentiation — the bottleneck of RSA.</p>
+
+			<h4>The bottleneck</h4>
+			<p>Encryption uses the small public exponent <code>e</code> — fast. Decryption uses <code>d</code>, which is roughly as large as <code>N</code> itself (~2048 bits). One full-size modular exponentiation per decryption — slow on every TLS handshake. Speeding this up is exactly what RSA-CRT does.</p>
 		</div>
 
 		<div class="notes-section" id="sec6">
 			<h3>6 — RSA-CRT (The Speedup)</h3>
-			<p>Decrypt twice in the smaller rings mod <code>p</code> and mod <code>q</code>, then recombine via CRT.</p>
+			<p>Because <code>N = p · q</code> is itself a product of two coprime numbers, CRT lets us decompose any computation mod <code>N</code> into one mod <code>p</code> and one mod <code>q</code>, then stitch them back together.</p>
+
+			<h4>Precompute (once, when keys are made)</h4>
 			<ul>
-				<li><code>dP = d mod (p−1)</code>, &nbsp; <code>dQ = d mod (q−1)</code>, &nbsp; <code>qInv = q^(-1) mod p</code></li>
-				<li><code>m_1 = c^(dP) mod p</code>, &nbsp; <code>m_2 = c^(dQ) mod q</code></li>
+				<li><code>dP = d mod (p − 1)</code> — Fermat's little theorem reduces the exponent.</li>
+				<li><code>dQ = d mod (q − 1)</code></li>
+				<li><code>qInv = q<sup>−1</sup> mod p</code> — used in the recombination step.</li>
+			</ul>
+
+			<h4>Decrypt (every time a ciphertext arrives)</h4>
+			<ul>
+				<li><code>m_1 = c<sup>dP</sup> mod p</code> &nbsp;(half-size exponentiation)</li>
+				<li><code>m_2 = c<sup>dQ</sup> mod q</code> &nbsp;(half-size exponentiation)</li>
 				<li><code>h = qInv · (m_1 − m_2) mod p</code></li>
 				<li><code>m = m_2 + h · q</code></li>
 			</ul>
+
 			<div class="key-concept">
 				<div class="kc-title">Why ~4× faster</div>
-				<p>Half-size operands make each multiply <code>(b/2)² = b²/4</code> as expensive. Two such half-size exponentiations cost roughly <code>¼</code> of one full <code>c^d mod N</code>.</p>
+				<p>Schoolbook multiplication of <code>b</code>-bit numbers costs <code>O(b²)</code>. Halving the bit width quarters each multiplication's cost (<code>(b/2)² = b²/4</code>). Two half-size exponentiations therefore cost roughly <code>2 · ¼ = ½</code> of one full <code>c<sup>d</sup> mod N</code>; combined with the smaller exponents <code>dP, dQ</code>, real implementations land closer to a <strong>3-4× speedup</strong>.</p>
 			</div>
+
+			<h4>Why this is correct</h4>
+			<p>By construction <code>m ≡ m_1 (mod p)</code> and <code>m ≡ m_2 (mod q)</code> — exactly what plain decryption would give. CRT (uniqueness mod <code>p·q = N</code>) guarantees this is the same <code>m</code>.</p>
 		</div>
 
 		<div class="notes-section" id="sec7">
 			<h3>7 — Complexity</h3>
 			<table class="complexity-table">
-				<tr><th>Method</th><th>Time</th></tr>
-				<tr><td>Brute-force search for x</td><td style="color:var(--red)">O(k · N)</td></tr>
-				<tr><td>CRT construction</td><td style="color:var(--green)">O(k · log² max n_i)</td></tr>
-				<tr><td>Standard RSA decrypt</td><td>O((log N)³)</td></tr>
-				<tr><td>RSA-CRT decrypt</td><td style="color:var(--green)">≈ ¼ · O((log N)³)</td></tr>
+				<tr><th>Method</th><th>Time</th><th>Note</th></tr>
+				<tr><td>Brute-force search for x</td><td style="color:var(--red)">O(k · N)</td><td>Try every integer in [0, N)</td></tr>
+				<tr><td>CRT construction</td><td style="color:var(--green)">O(k · log² max n_i)</td><td>k inverses + k multiplies</td></tr>
+				<tr><td>Standard RSA decrypt</td><td>O((log N)³)</td><td>One full-size <code>c<sup>d</sup> mod N</code></td></tr>
+				<tr><td>RSA-CRT decrypt</td><td style="color:var(--green)">≈ ¼ · O((log N)³)</td><td>Two half-size exponentiations + recombine</td></tr>
 			</table>
+
+			<p>For a 2048-bit RSA key the speedup is large enough to matter on every server: TLS handshake throughput often doubles or triples after enabling RSA-CRT.</p>
 		</div>
 
 		<div class="notes-section" id="sec8">
 			<h3>8 — Worked Example</h3>
+			<p>Sun Tzu's puzzle, solved by the formula. Three congruences:</p>
 			<div class="worked-example">x ≡ 2 (mod 3),  x ≡ 3 (mod 5),  x ≡ 2 (mod 7)
 
-N = 3·5·7 = 105
-N_1=35, M_1=2  → term_1 = 2·35·2 = 140
-N_2=21, M_2=1  → term_2 = 3·21·1 =  63
-N_3=15, M_3=1  → term_3 = 2·15·1 =  30
-sum = 233   →   x = 233 mod 105 = 23
+Step 1 — total modulus
+  N = 3 · 5 · 7 = 105
 
-Verify: 23 mod 3 = 2 ✓   23 mod 5 = 3 ✓   23 mod 7 = 2 ✓</div>
+Step 2 — partial products
+  N_1 = 105/3 = 35     N_2 = 105/5 = 21     N_3 = 105/7 = 15
+
+Step 3 — modular inverses (via Extended Euclid)
+  M_1 = 35^(-1) mod 3 = 2     (since 35 ≡ 2 (mod 3) and 2·2 = 4 ≡ 1)
+  M_2 = 21^(-1) mod 5 = 1     (since 21 ≡ 1 (mod 5))
+  M_3 = 15^(-1) mod 7 = 1     (since 15 ≡ 1 (mod 7))
+
+Step 4 — weighted sum
+  term_1 = 2 · 35 · 2 = 140
+  term_2 = 3 · 21 · 1 =  63
+  term_3 = 2 · 15 · 1 =  30
+  sum    = 233
+
+Step 5 — reduce mod N
+  x = 233 mod 105 = 23
+
+Verify:  23 mod 3 = 2 ✓   23 mod 5 = 3 ✓   23 mod 7 = 2 ✓</div>
+
+			<div class="key-concept">
+				<div class="kc-title">Sanity-check the speed</div>
+				<p>Brute force would scan up to 105 integers checking three remainders each — about 300 operations. CRT construction did 3 inverses (tiny) + a few multiplies. The gap dwarfs in real-world sizes: at <code>N ≈ 2<sup>2048</sup></code>, brute force is impossible while CRT finishes in microseconds.</p>
+			</div>
 		</div>
 	</div>
 </section>
