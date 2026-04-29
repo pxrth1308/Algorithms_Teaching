@@ -87,6 +87,11 @@ header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
 }
 .algo-tab:hover { background: rgba(56,189,248,0.08); color: var(--text); }
 .algo-tab.active { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.45); color: var(--accent); }
+.algo-tab.home {
+	background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.4);
+	color: var(--purple); margin-left: auto;
+}
+.algo-tab.home:hover { background: rgba(167,139,250,0.22); color: var(--text); }
 
 .roadmap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .roadmap a {
@@ -101,9 +106,19 @@ header .meta { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
 	font-size: 14px; font-weight: 600; color: var(--accent);
 	margin-bottom: 8px; border-left: 3px solid var(--accent); padding-left: 10px;
 }
+.notes-section h4 {
+	font-size: 12px; font-weight: 600; color: var(--amber);
+	margin: 12px 0 6px; letter-spacing: 0.2px;
+}
 .notes-section p { color: var(--text-dim); line-height: 1.65; margin-bottom: 8px; }
 .notes-section ul { margin: 8px 0 8px 20px; color: var(--text-dim); line-height: 1.85; }
 .notes-section li { margin-bottom: 4px; }
+.notes-section blockquote {
+	border-left: 3px solid var(--purple);
+	background: rgba(167,139,250,0.06);
+	padding: 8px 12px; margin: 10px 0;
+	color: var(--text); font-style: italic; font-size: 12.5px; line-height: 1.6;
+}
 .notes-section code {
 	background: var(--panel2); color: var(--teal);
 	padding: 1px 5px; border-radius: 3px;
@@ -453,6 +468,7 @@ input[type=range]::-webkit-slider-thumb {
 	<button class="algo-tab" onclick="location.href='ChineseRemainder_RSA.html'">Part 2: CRT / RSA-CRT</button>
 	<button class="algo-tab" onclick="location.href='ClosestPairPoints.html'">Part 3: Closest Pair of Points</button>
 	<button class="algo-tab active" onclick="location.href='FPTAS.html'">Part 4: FPTAS</button>
+	<button class="algo-tab home" onclick="location.href='index.html'">Home →</button>
 </nav>
 
 <section id="lecture-notes">
@@ -462,97 +478,196 @@ input[type=range]::-webkit-slider-thumb {
 	</div>
 	<div class="notes-body open" id="notes-body">
 		<div class="roadmap">
-			<a href="#sec1">1. The Problem</a>
-			<a href="#sec2">2. NP-Hardness</a>
-			<a href="#sec3">3. Scaling Trick</a>
-			<a href="#sec4">4. Scaled DP</a>
-			<a href="#sec5">5. (1−ε) Guarantee</a>
-			<a href="#sec6">6. PTAS vs FPTAS</a>
-			<a href="#sec7">7. Complexity</a>
-			<a href="#sec8">8. Worked Example</a>
+			<a href="#sec1">1. The Problem &amp; Why It Matters</a>
+			<a href="#sec2">2. NP-Hardness &amp; Pseudo-polynomial DP</a>
+			<a href="#sec3">3. The Idea: Approximate, Don't Solve Exactly</a>
+			<a href="#sec4">4. Scaling Trick</a>
+			<a href="#sec5">5. Scaled DP (vs Exact DP)</a>
+			<a href="#sec6">6. (1−ε) Guarantee</a>
+			<a href="#sec7">7. PTAS vs FPTAS</a>
+			<a href="#sec8">8. Complexity</a>
+			<a href="#sec9">9. Worked Example</a>
 		</div>
 
 		<div class="notes-section" id="sec1">
-			<h3>1 — The Problem (0/1 Knapsack)</h3>
-			<p>Given <code>n</code> items with values <code>v_i</code> and weights <code>w_i</code>, and a capacity <code>W</code>, choose a subset <code>S</code> with <code>∑w_i ≤ W</code> that maximizes <code>∑v_i</code>.</p>
+			<h3>1 — The Problem &amp; Why It Matters</h3>
+			<p>You're packing for a flight with a strict weight limit. In front of you sit several items. Each one has a <em>value</em> (how much you'd enjoy taking it) and a <em>weight</em>. You can either pack an item entirely or leave it behind — no half-bottles, no half-jackets. The question:</p>
+			<blockquote>"Which subset of items should I pack to maximize total value without exceeding the weight limit?"</blockquote>
+
+			<p>This is the <strong>0/1 Knapsack Problem</strong>, one of the most famous combinatorial optimization problems in computer science.</p>
+
+			<h4>Where it shows up</h4>
+			<ul>
+				<li><strong>Capital budgeting</strong> — pick which projects to fund under a fixed budget to maximize ROI.</li>
+				<li><strong>Cargo loading</strong> — what to load onto a ship/plane/truck under a weight or volume limit.</li>
+				<li><strong>Cloud resource allocation</strong> — schedule jobs onto a server with limited CPU/RAM, maximize utility.</li>
+				<li><strong>Cutting stock &amp; manufacturing</strong> — choose pieces to cut from a roll of material.</li>
+				<li><strong>Cryptography</strong> — early public-key schemes (Merkle-Hellman) were knapsack-based.</li>
+			</ul>
+
+			<h4>The formal problem</h4>
+			<p>Given <code>n</code> items with values <code>v_1, …, v_n</code> and weights <code>w_1, …, w_n</code>, and a knapsack capacity <code>W</code>, choose a subset <code>S ⊆ {1..n}</code> with <code>∑<sub>i∈S</sub> w_i ≤ W</code> that maximizes <code>∑<sub>i∈S</sub> v_i</code>.</p>
+
 			<div class="key-concept">
 				<div class="kc-title">Goal of an FPTAS</div>
-				<p>Return a solution with value at least <strong>(1 − ε) · OPT</strong> in time polynomial in both <code>n</code> and <code>1/ε</code>.</p>
+				<p>0/1 Knapsack is NP-hard, so we don't expect a polynomial-time <em>exact</em> algorithm. An <strong>FPTAS</strong> (Fully Polynomial-Time Approximation Scheme) accepts an error tolerance <code>ε &gt; 0</code> chosen by the user and returns a solution with value <strong>≥ (1 − ε) · OPT</strong>, in time polynomial in both <code>n</code> and <code>1/ε</code>. Pick <code>ε = 0.01</code> for "within 1 % of optimum"; pick <code>ε = 0.0001</code> for tighter; runtime grows gracefully.</p>
 			</div>
 		</div>
 
 		<div class="notes-section" id="sec2">
-			<h3>2 — NP-Hardness &amp; Pseudo-polynomial DP</h3>
-			<p>Knapsack is NP-hard, so we don't expect a polynomial-time exact algorithm. The classical DP <code>dp[i][V] = min weight to reach value V</code> runs in <code>O(n · V_total)</code>, which is <em>pseudo-polynomial</em> — fast only when values are small integers.</p>
+			<h3>2 — Why Knapsack Is Hard: NP-Hardness &amp; Pseudo-polynomial DP</h3>
+			<p>0/1 Knapsack is one of Karp's original 21 NP-complete problems (1972). Unless P = NP, no algorithm runs in time polynomial in the input length and produces the exact optimum on every instance.</p>
+
+			<h4>Brute force</h4>
+			<p>Try every subset: <code>2ⁿ</code> possibilities. Fine for <code>n = 25</code>, hopeless for <code>n = 60</code>.</p>
+
+			<h4>Two natural DPs</h4>
+			<ul>
+				<li><strong>Capacity-indexed:</strong> <code>dp[i][w] = </code> max value using items <code>1..i</code> with total weight <code>≤ w</code>. Time / space: <code>O(n · W)</code>.</li>
+				<li><strong>Value-indexed:</strong> <code>dp[i][V] = </code> min weight to reach value <code>V</code> using items <code>1..i</code>. Time / space: <code>O(n · V_total)</code> where <code>V_total = ∑ v_i</code>.</li>
+			</ul>
+
+			<div class="highlight-box">
+				<p><strong>Why these DPs are called "pseudo-polynomial".</strong> The runtime is polynomial in the <em>numerical magnitude</em> <code>W</code> or <code>V_total</code>, not in the <em>length</em> <code>log W</code> of the input. With genuine inputs like <code>v_i = 10⁹</code>, <code>V_total</code> can be <code>10¹¹</code> — a table that won't fit in memory. Truly polynomial means polynomial in the bit-length of the numbers, which neither DP achieves.</p>
+			</div>
+
+			<p>So we have a dilemma: brute force is exponential in <code>n</code>; DP is exponential in the size of the value/weight numbers. The way out is to <em>not insist on exact answers</em>.</p>
 		</div>
 
 		<div class="notes-section" id="sec3">
-			<h3>3 — The Scaling Trick</h3>
-			<p>Shrink values so the DP table becomes truly polynomial. Pick a scaling factor <code>K = ε · v_max / n</code>, then replace each value with <code>v'_i = ⌊v_i / K⌋</code>.</p>
-			<div class="formula">v'_i = ⌊v_i / K⌋   with   K = ε · v_max / n</div>
-			<p>Each scaled value is bounded by <code>v_max / K = n/ε</code>, so the total scaled value is at most <code>n²/ε</code> — independent of the original value magnitudes.</p>
+			<h3>3 — The Idea: Approximate, Don't Solve Exactly</h3>
+			<p>NP-hardness blocks exact polynomial-time solutions, but it leaves a back door wide open: solutions that are <em>nearly</em> optimal. For knapsack we can get within any user-chosen tolerance ε of OPT, in genuinely polynomial time. The trick is built in two layers.</p>
+
+			<h4>Why exact value-indexed DP fails</h4>
+			<p>The value-indexed DP is fast when <code>V_total</code> is small. With huge values it has too many columns. So the question is: <em>can we shrink the values without changing the answer too much?</em></p>
+
+			<h4>The plan</h4>
+			<ul>
+				<li><strong>Scale</strong> every value <code>v_i</code> down by a chosen factor <code>K</code>, then floor: <code>v'_i = ⌊v_i / K⌋</code>.</li>
+				<li><strong>Run</strong> the value-indexed DP on the scaled values. The table now has only <code>O(n²/ε)</code> columns — polynomial in everything.</li>
+				<li><strong>Argue</strong> that flooring loses at most <code>K</code> per item. Add up: total error is at most <code>n·K = ε·v_max ≤ ε·OPT</code>. So we still get <code>(1 − ε) · OPT</code>.</li>
+			</ul>
+
+			<p>That's the entire FPTAS in three bullets. The next four sections fill in the details.</p>
 		</div>
 
 		<div class="notes-section" id="sec4">
-			<h3>4 — Scaled DP (with Exact DP for Comparison)</h3>
-			<p>Run the value-indexed DP on scaled values:</p>
-			<div class="formula">dp[i][V] = min weight to reach scaled value V using items 1..i</div>
+			<h3>4 — The Scaling Trick</h3>
+			<p>Pick the scaling factor:</p>
+			<div class="formula">K = ε · v_max / n           where v_max = max v_i</div>
+			<p>Replace each value:</p>
+			<div class="formula">v'_i = ⌊ v_i / K ⌋</div>
+
+			<h4>Why this exact K?</h4>
+			<p>Two competing forces:</p>
 			<ul>
-				<li>Base: <code>dp[0][0] = 0</code>, <code>dp[0][V&gt;0] = ∞</code>.</li>
-				<li>Recurrence: <code>dp[i][V] = min(dp[i−1][V],&nbsp; dp[i−1][V−v'_i] + w_i)</code>.</li>
-				<li>Answer: largest <code>V</code> with <code>dp[n][V] ≤ W</code>; recover items by traceback.</li>
+				<li><em>Big <code>K</code></em> → values shrink a lot → DP table is tiny → fast, but rounding error is large.</li>
+				<li><em>Small <code>K</code></em> → values barely change → table is big → slow, but rounding error is tiny.</li>
 			</ul>
+			<p>The choice <code>K = ε·v_max / n</code> is the sweet spot: each item loses at most <code>K</code> when floored, total loss <code>≤ n·K = ε·v_max ≤ ε·OPT</code> — exactly the bound we want — while each scaled value is bounded by <code>v_max / K = n/ε</code>, so <code>V_total ≤ n · (n/ε) = n²/ε</code>.</p>
+
 			<div class="key-concept">
-				<div class="kc-title">Side-by-side comparison</div>
-				<p>The tool fills the <strong>exact</strong> DP <code>dp[i][w] = max value with capacity ≤ w</code> on the <em>left</em> and the <strong>scaled FPTAS</strong> DP on the <em>right</em>, in lockstep per item. Compare the two table widths: the exact DP has <code>W+1</code> columns (depends on capacity), while the scaled DP has <code>V_total+1 ≤ n²/ε + 1</code> columns — bounded purely in terms of <code>n</code> and <code>1/ε</code>.</p>
+				<div class="kc-title">Why the table is now polynomial</div>
+				<p><code>V_total ≤ n²/ε</code> depends only on <code>n</code> and <code>1/ε</code> — <strong>not</strong> on the magnitude of the original values. A 64-bit value worth a billion is now scaled to a small integer, and the DP runs in time bounded purely in the input length.</p>
 			</div>
 		</div>
 
 		<div class="notes-section" id="sec5">
-			<h3>5 — The (1 − ε) Guarantee</h3>
-			<div class="key-concept">
-				<div class="kc-title">Approximation bound</div>
-				<p>Each value loses at most <code>K</code> when floored, so the total value lost is at most <code>n·K = ε·v_max ≤ ε·OPT</code>. Therefore the recovered solution achieves at least <code>(1 − ε) · OPT</code>.</p>
-			</div>
-			<div class="highlight-box">
-				<p><strong>Tradeoff:</strong> smaller <code>ε</code> → better approximation but larger DP table → slower runtime. Larger <code>ε</code> → faster but coarser answer.</p>
-			</div>
+			<h3>5 — Scaled DP (with the Exact DP for Comparison)</h3>
+			<p>Run the value-indexed DP on the scaled values <code>v'_i</code>:</p>
+			<div class="formula">dp[i][V] = min weight to reach scaled value V using items 1..i</div>
+
+			<ul>
+				<li><strong>Base:</strong> <code>dp[0][0] = 0</code>, &nbsp;<code>dp[0][V&gt;0] = ∞</code> &nbsp;(can't reach positive value with zero items).</li>
+				<li><strong>Recurrence:</strong> <code>dp[i][V] = min( dp[i−1][V],&nbsp; dp[i−1][V − v'_i] + w_i )</code>. The two choices: skip item <code>i</code> (left) or take it if it fits (right).</li>
+				<li><strong>Answer:</strong> the largest <code>V</code> with <code>dp[n][V] ≤ W</code>. Recover the chosen items by tracing the recurrence backward.</li>
+			</ul>
+
+			<h4>Side-by-side with the exact DP</h4>
+			<p>The visualizer below fills two tables in lockstep, item by item:</p>
+			<ul>
+				<li><strong>Left (exact):</strong> <code>dp[i][w]</code> = max value with capacity ≤ <code>w</code>. Has <code>W + 1</code> columns — width depends on the input number <code>W</code>.</li>
+				<li><strong>Right (FPTAS):</strong> <code>dp[i][V]</code> on scaled values. Has at most <code>n²/ε + 1</code> columns — width depends only on <code>n</code> and <code>1/ε</code>.</li>
+			</ul>
+			<p>Watch how the two tables grow: the exact one balloons with <code>W</code>, while the FPTAS one stays bounded no matter how huge the original values are.</p>
 		</div>
 
 		<div class="notes-section" id="sec6">
-			<h3>6 — PTAS vs FPTAS</h3>
-			<p>Both produce <code>(1−ε)</code>-approximations:</p>
-			<ul>
-				<li><strong>PTAS:</strong> polynomial in <code>n</code> for any fixed <code>ε</code> (<code>1/ε</code> may appear in the exponent).</li>
-				<li><strong>FPTAS:</strong> polynomial in both <code>n</code> and <code>1/ε</code> — strictly stronger.</li>
-			</ul>
-			<p>Knapsack admits an FPTAS; many other NP-hard problems (e.g. Bin Packing) admit only a PTAS.</p>
+			<h3>6 — Why the Answer Is Within (1 − ε) of OPT</h3>
+			<p>Let <code>S*</code> be the truly optimal subset (we don't see it, but it exists). For each item <code>i ∈ S*</code>:</p>
+			<div class="formula">v_i  ≥  K · v'_i  ≥  v_i − K</div>
+			<p>(The first inequality is "scale, then unscale"; the second is the floor losing at most <code>K</code>.) Summing over the items in <code>S*</code>:</p>
+			<div class="formula">∑<sub>i∈S*</sub> v_i  −  K · ∑<sub>i∈S*</sub> v'_i  ≤  |S*| · K  ≤  n · K  =  ε · v_max  ≤  ε · OPT</div>
+
+			<p>Since the FPTAS DP finds the subset that maximizes <code>∑ v'_i</code> (under the same weight constraint), it picks something at least as good as <code>S*</code> in scaled-value terms. Translating back to true values, the recovered solution has value at least:</p>
+			<div class="formula">OPT − ε · OPT  =  (1 − ε) · OPT</div>
+
+			<div class="key-concept">
+				<div class="kc-title">The trade-off knob</div>
+				<p>Pick <code>ε = 0.5</code>: half-OPT guarantee, very fast (<code>~2n³</code>). Pick <code>ε = 0.01</code>: 99 % guarantee, 50× more work. Pick <code>ε = 0.001</code>: 99.9 %, 500× more work. <strong>You</strong> set the dial; the algorithm responds polynomially.</p>
+			</div>
 		</div>
 
 		<div class="notes-section" id="sec7">
-			<h3>7 — Complexity</h3>
+			<h3>7 — PTAS vs FPTAS (a small but important distinction)</h3>
+			<p>Both schemes deliver <code>(1 − ε)</code>-approximations. The difference is how the runtime depends on <code>ε</code>:</p>
+
 			<table class="complexity-table">
-				<tr><th>Method</th><th>Time</th><th>Notes</th></tr>
-				<tr><td>Brute force (subsets)</td><td style="color:var(--red)">O(2ⁿ)</td><td>Exact, exponential</td></tr>
-				<tr><td>Pseudo-polynomial DP</td><td>O(n · V_total)</td><td>Exact, fast only for small values</td></tr>
-				<tr><td>FPTAS</td><td style="color:var(--green)">O(n³ / ε)</td><td>(1−ε)-approximation</td></tr>
+				<tr><th>Scheme</th><th>Runtime</th><th>Behaviour as ε → 0</th></tr>
+				<tr><td>PTAS</td><td>poly(n) for any fixed ε</td><td><code>1/ε</code> can sit in the <em>exponent</em>, e.g. <code>O(n<sup>1/ε</sup>)</code> — explodes for tiny ε</td></tr>
+				<tr><td>FPTAS</td><td style="color:var(--green)">poly(n, 1/ε)</td><td>strictly stronger; tiny ε only adds polynomial cost</td></tr>
 			</table>
+
+			<p>Knapsack admits an FPTAS (this lesson). Bin Packing and Euclidean TSP admit only a PTAS. Vertex Cover, MAX-3-SAT, and (assuming the Unique Games Conjecture) many others admit neither — they have hard approximation lower bounds.</p>
 		</div>
 
 		<div class="notes-section" id="sec8">
-			<h3>8 — Worked Example</h3>
-			<div class="worked-example">Items (v, w): (6,4), (8,5), (5,3)
-Capacity W = 10,  ε = 0.2
+			<h3>8 — Complexity</h3>
+			<table class="complexity-table">
+				<tr><th>Method</th><th>Time</th><th>Notes</th></tr>
+				<tr><td>Brute force (try all subsets)</td><td style="color:var(--red)">O(2ⁿ)</td><td>Exact, exponential</td></tr>
+				<tr><td>Pseudo-polynomial DP</td><td>O(n · V_total)</td><td>Exact, but scales with the magnitude of values</td></tr>
+				<tr><td>FPTAS</td><td style="color:var(--green)">O(n³ / ε)</td><td>(1 − ε)-approximation, polynomial in n and 1/ε</td></tr>
+			</table>
 
-K = ε · v_max / n = 0.2 · 8 / 3 ≈ 0.533
-v' = ⌊v/K⌋ → (11, 15, 9)
+			<h4>Sanity check at n = 100, ε = 0.01</h4>
+			<ul>
+				<li>Brute force: <code>2¹⁰⁰ ≈ 10³⁰</code> — never finishes.</li>
+				<li>Pseudo-poly DP with <code>v_i ~ 10⁹</code>: <code>~10¹¹</code> ops — minutes to hours.</li>
+				<li>FPTAS: <code>n³/ε = 10⁸</code> ops — a fraction of a second, with answer guaranteed within 1 % of optimum.</li>
+			</ul>
+		</div>
 
-DP on scaled values:
-  Best scaled total ≤ 10 weight  →  V* = 26  (items 1+2 = 11+15)
-  Recovered set: {(6,4), (8,5)}  weight = 9, value = 14
+		<div class="notes-section" id="sec9">
+			<h3>9 — Worked Example</h3>
+			<div class="worked-example">Items (value v, weight w):  (6, 4),  (8, 5),  (5, 3)
+Capacity W = 10,    ε = 0.2,    n = 3,    v_max = 8
 
-Optimal exact value = 14 (same set).
-FPTAS / OPT = 14 / 14 = 100% ≥ (1 − ε) = 80%  ✓</div>
+Step 1 — choose K
+  K = ε · v_max / n = 0.2 · 8 / 3 ≈ 0.533
+
+Step 2 — scale values  v'_i = ⌊ v_i / K ⌋
+  v'_1 = ⌊6 / 0.533⌋ = 11
+  v'_2 = ⌊8 / 0.533⌋ = 15
+  v'_3 = ⌊5 / 0.533⌋ =  9
+
+Step 3 — value-indexed DP on scaled values
+  V_total ≤ 11 + 15 + 9 = 35  (table has 36 columns)
+  Best scaled value with weight ≤ 10:
+     items 1 + 2 → V' = 26,  weight = 4 + 5 = 9   ✓
+
+Step 4 — recover the chosen subset
+  S = { item 1, item 2 } = { (6,4), (8,5) }
+  weight = 9 ≤ 10,   true value = 14
+
+Step 5 — compare with the true optimum
+  Brute-force OPT on this small input = 14   (same subset)
+  FPTAS / OPT = 14 / 14 = 100 % ≥ (1 − ε) = 80 %  ✓</div>
+
+			<div class="key-concept">
+				<div class="kc-title">Try the visualizer below</div>
+				<p>Switch <code>ε</code> in the controls and watch the scaled-DP table shrink or grow. The exact-DP table on the left stays anchored to <code>W</code>; the FPTAS table on the right scales with <code>1/ε</code> only. That widening / narrowing is the whole story of why an FPTAS is "fully" polynomial.</p>
+			</div>
 		</div>
 	</div>
 </section>
